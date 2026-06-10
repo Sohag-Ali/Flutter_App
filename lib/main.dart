@@ -789,49 +789,67 @@ class _FarmerHomeTabState extends State<_FarmerHomeTab> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      IconButton(
-                        onPressed: () {},
-                        icon: const Icon(Icons.menu),
-                        tooltip: 'Menu',
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF2F6B3D), Color(0xFF4F8A5A), Color(0xFFEAF4DF)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
-                      Expanded(
-                        child: Column(
-                          children: [
-                            Text(
-                              friend.location,
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              'Home dashboard',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: const Color(0xFF6B7280)),
-                            ),
-                          ],
+                      borderRadius: BorderRadius.circular(22),
+                      boxShadow: const [BoxShadow(color: Color(0x22000000), blurRadius: 16, offset: Offset(0, 6))],
+                    ),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          onPressed: () {},
+                          icon: const Icon(Icons.menu, color: Colors.white),
+                          tooltip: 'Menu',
                         ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(999),
-                          border: Border.all(color: const Color(0xFFE5E7EB)),
+                        Expanded(
+                          child: Column(
+                            children: [
+                              Text(
+                                friend.location,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.white,
+                                  letterSpacing: -0.2,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Home dashboard',
+                                style: TextStyle(color: Colors.white.withOpacity(0.84), fontSize: 12, fontWeight: FontWeight.w600),
+                              ),
+                            ],
+                          ),
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.wb_sunny_outlined, size: 18, color: Color(0xFFE67E22)),
-                            const SizedBox(width: 6),
-                            Text(
-                              '${friend.weather} ${friend.temperature.toStringAsFixed(0)}°C',
-                              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
-                            ),
-                          ],
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.92),
+                            borderRadius: BorderRadius.circular(999),
+                            border: Border.all(color: Colors.white.withOpacity(0.2)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.wb_sunny_outlined, size: 18, color: Color(0xFFE67E22)),
+                              const SizedBox(width: 6),
+                              Text(
+                                '${friend.weather} ${friend.temperature.toStringAsFixed(0)}°C',
+                                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: Color(0xFF314036)),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 18),
                   Container(
@@ -1213,80 +1231,781 @@ class _FarmerMonitorTab extends StatefulWidget {
 
 class _FarmerMonitorTabState extends State<_FarmerMonitorTab> {
   String? _selectedFieldId;
+  int _tabIndex = 0;
+
+  static const List<_MonitorSensor> _liveSensors = [
+    _MonitorSensor(
+      title: 'Moisture',
+      value: '72',
+      unit: '%',
+      note: 'Ideal for growth',
+      icon: Icons.water_drop_outlined,
+      color: Color(0xFF22A06B),
+      sparkValues: [36, 40, 38, 45, 42, 48, 52, 49],
+      warning: false,
+    ),
+    _MonitorSensor(
+      title: 'Temperature',
+      value: '28.9',
+      unit: '°C',
+      note: 'Stable',
+      icon: Icons.thermostat_outlined,
+      color: Color(0xFFE46E45),
+      sparkValues: [22, 24, 25, 26, 26, 27, 27, 28],
+      warning: false,
+    ),
+    _MonitorSensor(
+      title: 'pH Level',
+      value: '6.4',
+      unit: '',
+      note: 'Slightly acidic',
+      icon: Icons.science_outlined,
+      color: Color(0xFF8A63F7),
+      sparkValues: [7, 7, 6.8, 6.7, 6.6, 6.5, 6.4, 6.4],
+      warning: false,
+    ),
+    _MonitorSensor(
+      title: 'Nitrogen',
+      value: '76',
+      unit: 'ppm',
+      note: 'Sufficient',
+      icon: Icons.eco_outlined,
+      color: Color(0xFF70A62E),
+      sparkValues: [62, 64, 65, 66, 68, 71, 73, 76],
+      warning: false,
+    ),
+    _MonitorSensor(
+      title: 'Phosphorus',
+      value: '39',
+      unit: 'ppm',
+      note: 'Low - needs attention',
+      icon: Icons.grass_outlined,
+      color: Color(0xFFF0A935),
+      sparkValues: [52, 49, 46, 44, 43, 41, 40, 39],
+      warning: true,
+    ),
+    _MonitorSensor(
+      title: 'Potassium',
+      value: '52',
+      unit: 'ppm',
+      note: 'Balanced',
+      icon: Icons.agriculture_outlined,
+      color: Color(0xFF23B38A),
+      sparkValues: [46, 47, 48, 48, 50, 51, 52, 52],
+      warning: false,
+    ),
+  ];
+
+  static const List<_CompareField> _compareFields = [
+    _CompareField(name: 'Field A', moisture: 64, status: 'Stable', color: Color(0xFF2C7BE5)),
+    _CompareField(name: 'Field B', moisture: 89, status: 'Warning', color: Color(0xFFE46E45), isWarning: true),
+    _CompareField(name: 'Field C', moisture: 71, status: 'Balanced', color: Color(0xFF22A06B)),
+  ];
+
+  static const List<_DetailSensor> _detailSensors = [
+    _DetailSensor(
+      title: 'Moisture',
+      current: '72%',
+      average: '68%',
+      peak: '84%',
+      low: '54%',
+      color: Color(0xFF22A06B),
+      bars: [32, 36, 40, 44, 42, 48, 52, 49, 54, 58, 60, 62],
+    ),
+    _DetailSensor(
+      title: 'Temperature',
+      current: '28.9°C',
+      average: '28.2°C',
+      peak: '31.4°C',
+      low: '25.8°C',
+      color: Color(0xFFE46E45),
+      bars: [22, 23, 24, 25, 25, 26, 27, 28, 27, 29, 30, 28],
+    ),
+    _DetailSensor(
+      title: 'pH Level',
+      current: '6.4',
+      average: '6.5',
+      peak: '6.9',
+      low: '6.1',
+      color: Color(0xFF8A63F7),
+      bars: [6, 6, 7, 7, 6, 6, 7, 7, 6, 6, 7, 6],
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    return _SingleTabScaffold(
-      title: 'Monitor',
-      subtitle: 'Soil monitoring data for each field',
-      onLogout: widget.onLogout,
+    return Scaffold(
+      body: Stack(
+        children: [
+          const _MonitorBackdrop(),
+          SafeArea(
+            child: AnimatedBuilder(
+              animation: FieldService(),
+              builder: (context, _) {
+                final fields = FieldService().fields;
+                if (fields.isEmpty) {
+                  return const _InfoCard(
+                    title: 'No fields yet',
+                    subtitle: 'Add a friend on the Home page to start showing monitor data.',
+                    icon: Icons.sensors_outlined,
+                    fullWidth: true,
+                  );
+                }
+
+                _selectedFieldId ??= fields.first.id;
+                final selectedField = fields.firstWhere((field) => field.id == _selectedFieldId, orElse: () => fields.first);
+
+                return Column(
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.symmetric(horizontal: 10),
+                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF245C31), Color(0xFF32713D), Color(0xFF4D8B56)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(26),
+                        boxShadow: const [BoxShadow(color: Color(0x26000000), blurRadius: 24, offset: Offset(0, 12))],
+                      ),
+                      child: Stack(
+                        children: [
+                          Positioned(top: -26, right: -22, child: _GlowCircle(color: Color(0x22FFFFFF), size: 88)),
+                          Positioned(bottom: -18, left: -12, child: _GlowCircle(color: Color(0x18FFFFFF), size: 64)),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _DashboardTopBar(title: 'Monitor', subtitle: '${selectedField.name} · 3 fields connected', onLogout: widget.onLogout),
+                              const SizedBox(height: 10),
+                              Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.12),
+                                  borderRadius: BorderRadius.circular(18),
+                                  border: Border.all(color: Colors.white.withOpacity(0.12)),
+                                ),
+                                child: Row(
+                                  children: [
+                                    _MonitorTabButton(
+                                      label: 'Live',
+                                      selected: _tabIndex == 0,
+                                      onTap: () => setState(() => _tabIndex = 0),
+                                    ),
+                                    _MonitorTabButton(
+                                      label: 'Compare',
+                                      selected: _tabIndex == 1,
+                                      onTap: () => setState(() => _tabIndex = 1),
+                                    ),
+                                    _MonitorTabButton(
+                                      label: 'Details',
+                                      selected: _tabIndex == 2,
+                                      onTap: () => setState(() => _tabIndex = 2),
+                                    ),
+                                    _MonitorTabButton(
+                                      label: 'Export',
+                                      selected: _tabIndex == 3,
+                                      onTap: () => setState(() => _tabIndex = 3),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.fromLTRB(14, 12, 14, 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEAF3D9),
+                                borderRadius: BorderRadius.circular(999),
+                                border: Border.all(color: const Color(0xFFB7D08E)),
+                              ),
+                              child: Text(
+                                _tabIndex == 0
+                                    ? 'Live · updated 12s ago'
+                                    : _tabIndex == 1
+                                        ? 'Compare · 3 fields side by side'
+                                        : _tabIndex == 2
+                                            ? 'Details · 24h sensor bars'
+                                            : 'Export · report & share options',
+                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF6B8B34)),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 220),
+                              child: _tabIndex == 0
+                                  ? _MonitorLiveView(
+                                      key: const ValueKey('live'),
+                                      sensors: _liveSensors,
+                                      selectedField: selectedField,
+                                    )
+                                  : _tabIndex == 1
+                                      ? _MonitorCompareView(
+                                          key: const ValueKey('compare'),
+                                          fields: _compareFields,
+                                        )
+                                      : _tabIndex == 2
+                                          ? _MonitorDetailsView(
+                                              key: const ValueKey('details'),
+                                              sensors: _detailSensors,
+                                            )
+                                          : _MonitorExportView(
+                                              key: const ValueKey('export'),
+                                              onShare: () {
+                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                  const SnackBar(content: Text('Live data shared with friend')),
+                                                );
+                                              },
+                                            ),
+                            ),
+                            const SizedBox(height: 12),
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.88),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: const Color(0xFFE4E7DD)),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text('Last updated: ${DateTime(2026, 6, 10, 9, 41).hour}:${DateTime(2026, 6, 10, 9, 41).minute.toString().padLeft(2, '0')} AM', style: const TextStyle(fontSize: 12, color: Color(0xFF8A938B), fontWeight: FontWeight.w600)),
+                                  const Icon(Icons.sync, size: 18, color: Color(0xFF91A37E)),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MonitorBackdrop extends StatelessWidget {
+  const _MonitorBackdrop();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFFF6FAF0), Color(0xFFEAF3E2), Color(0xFFD9E9D1)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Stack(
+        children: const [
+          Positioned(top: -70, right: -45, child: _GlowCircle(color: Color(0x334D8E55), size: 190)),
+          Positioned(top: 18, left: -35, child: _GlowCircle(color: Color(0x224F8B57), size: 130)),
+          Positioned(bottom: 90, right: 16, child: _GlowCircle(color: Color(0x1E7AB26C), size: 150)),
+          Positioned(bottom: -30, left: 25, child: _GlowCircle(color: Color(0x18FFFFFF), size: 110)),
+        ],
+      ),
+    );
+  }
+}
+
+class _MonitorTabButton extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _MonitorTabButton({required this.label, required this.selected, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            margin: const EdgeInsets.symmetric(horizontal: 2),
+            padding: const EdgeInsets.symmetric(vertical: 11),
+            decoration: BoxDecoration(
+              color: selected ? Colors.white : Colors.transparent,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: selected ? Colors.white.withOpacity(0.92) : Colors.transparent),
+              boxShadow: selected ? const [BoxShadow(color: Color(0x16000000), blurRadius: 10, offset: Offset(0, 4))] : const [],
+            ),
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: selected ? const Color(0xFF255E33) : Colors.white.withOpacity(0.88),
+                fontWeight: FontWeight.w800,
+                fontSize: 13,
+                letterSpacing: -0.1,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MonitorSensor {
+  final String title;
+  final String value;
+  final String unit;
+  final String note;
+  final IconData icon;
+  final Color color;
+  final List<double> sparkValues;
+  final bool warning;
+
+  const _MonitorSensor({required this.title, required this.value, required this.unit, required this.note, required this.icon, required this.color, required this.sparkValues, required this.warning});
+}
+
+class _CompareField {
+  final String name;
+  final int moisture;
+  final String status;
+  final Color color;
+  final bool isWarning;
+
+  const _CompareField({required this.name, required this.moisture, required this.status, required this.color, this.isWarning = false});
+}
+
+class _DetailSensor {
+  final String title;
+  final String current;
+  final String average;
+  final String peak;
+  final String low;
+  final Color color;
+  final List<double> bars;
+
+  const _DetailSensor({required this.title, required this.current, required this.average, required this.peak, required this.low, required this.color, required this.bars});
+}
+
+class _MonitorLiveView extends StatelessWidget {
+  final List<_MonitorSensor> sensors;
+  final FieldItem selectedField;
+
+  const _MonitorLiveView({super.key, required this.sensors, required this.selectedField});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: const Color(0xFFEAF3D9),
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: const Color(0xFFB6D08C)),
+          ),
+          child: const Text('Live · updated 12s ago', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF7A9936))),
+        ),
+        const SizedBox(height: 12),
+        ...sensors.map((sensor) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _MonitorSensorCard(sensor: sensor),
+            )),
+        const SizedBox(height: 4),
+        Text(
+          'Current field: ${selectedField.name}',
+          style: const TextStyle(fontSize: 12, color: Color(0xFF8A938B), fontWeight: FontWeight.w600),
+        ),
+      ],
+    );
+  }
+}
+
+class _MonitorSensorCard extends StatelessWidget {
+  final _MonitorSensor sensor;
+
+  const _MonitorSensorCard({required this.sensor});
+
+  @override
+  Widget build(BuildContext context) {
+    final maxValue = sensor.sparkValues.reduce((a, b) => a > b ? a : b);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: sensor.color.withOpacity(0.18)),
+        boxShadow: const [BoxShadow(color: Color(0x08000000), blurRadius: 10, offset: Offset(0, 4))],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(color: sensor.color.withOpacity(0.12), borderRadius: BorderRadius.circular(14)),
+            child: Icon(sensor.icon, color: sensor.color),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(sensor.title, style: const TextStyle(fontSize: 13, color: Color(0xFF465155), fontWeight: FontWeight.w700)),
+                const SizedBox(height: 4),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Text(sensor.value, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: sensor.warning ? const Color(0xFFE24A4A) : sensor.color, height: 1)),
+                    if (sensor.unit.isNotEmpty) ...[
+                      const SizedBox(width: 4),
+                      Text(sensor.unit, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: sensor.warning ? const Color(0xFFE24A4A) : sensor.color)),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  sensor.warning ? 'Low — needs attention' : sensor.note,
+                  style: TextStyle(fontSize: 12, color: sensor.warning ? const Color(0xFFE24A4A) : const Color(0xFF5E7B67), fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          SizedBox(
+            width: 58,
+            height: 42,
+            child: CustomPaint(
+              painter: _SparklinePainter(values: sensor.sparkValues, color: sensor.warning ? const Color(0xFFE24A4A) : sensor.color),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SparklinePainter extends CustomPainter {
+  final List<double> values;
+  final Color color;
+
+  _SparklinePainter({required this.values, required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (values.isEmpty) return;
+    final maxValue = values.reduce((a, b) => a > b ? a : b);
+    final minValue = values.reduce((a, b) => a < b ? a : b);
+    final range = (maxValue - minValue).clamp(1, double.infinity);
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 2.5
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    final path = Path();
+    for (var i = 0; i < values.length; i++) {
+      final dx = (size.width / (values.length - 1)) * i;
+      final dy = size.height - (((values[i] - minValue) / range) * size.height);
+      if (i == 0) {
+        path.moveTo(dx, dy);
+      } else {
+        path.lineTo(dx, dy);
+      }
+    }
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _SparklinePainter oldDelegate) => oldDelegate.values != values || oldDelegate.color != color;
+}
+
+class _MonitorCompareView extends StatelessWidget {
+  final List<_CompareField> fields;
+
+  const _MonitorCompareView({super.key, required this.fields});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Compare', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF22302A))),
+        const SizedBox(height: 12),
+        Row(
+          children: fields
+              .map(
+                (field) => Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: _CompareFieldCard(field: field),
+                  ),
+                ),
+              )
+              .toList(),
+        ),
+      ],
+    );
+  }
+}
+
+class _CompareFieldCard extends StatelessWidget {
+  final _CompareField field;
+
+  const _CompareFieldCard({required this.field});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: field.isWarning ? const Color(0xFFF0B28C) : const Color(0xFFE3E8DF)),
+        boxShadow: const [BoxShadow(color: Color(0x08000000), blurRadius: 10, offset: Offset(0, 4))],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          AnimatedBuilder(
-            animation: FieldService(),
-            builder: (context, _) {
-              final fields = FieldService().fields;
-              if (fields.isEmpty) {
-                return const _InfoCard(title: 'Live sensors', subtitle: 'No fields added yet.', icon: Icons.sensors_outlined, fullWidth: true);
-              }
-
-              if (_selectedFieldId == null && fields.isNotEmpty) {
-                _selectedFieldId = fields.first.id;
-              }
-
-              final selected = fields.firstWhere((f) => f.id == _selectedFieldId, orElse: () => fields.first);
-
-              final metrics = [
-                const SoilMetric(title: 'Moisture', value: '64', unit: '%', icon: Icons.water_drop_outlined, color: Color(0xFF2C7BE5), note: 'Ideal for growth'),
-                const SoilMetric(title: 'Temperature', value: '24.6', unit: 'C', icon: Icons.thermostat_outlined, color: Color(0xFFE06C4C), note: 'Stable'),
-                const SoilMetric(title: 'pH Level', value: '6.8', unit: '', icon: Icons.science_outlined, color: Color(0xFF8E5CF7), note: 'Slightly acidic'),
-                const SoilMetric(title: 'Nitrogen', value: '82', unit: 'ppm', icon: Icons.eco_outlined, color: Color(0xFF4E8F50), note: 'Sufficient'),
-                const SoilMetric(title: 'Phosphorus', value: '41', unit: 'ppm', icon: Icons.grass_outlined, color: Color(0xFFF0A202), note: 'Moderate'),
-                const SoilMetric(title: 'Potassium', value: '57', unit: 'ppm', icon: Icons.agriculture_outlined, color: Color(0xFF00897B), note: 'Balanced'),
-              ];
-              final recommendation = _buildCompostRecommendation(metrics);
-
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Text('Selected field:', style: TextStyle(fontWeight: FontWeight.w700)),
-                      const SizedBox(width: 12),
-                      DropdownButton<String>(
-                        value: _selectedFieldId,
-                        items: fields.map((f) => DropdownMenuItem(value: f.id, child: Text(f.name))).toList(),
-                        onChanged: (v) => setState(() => _selectedFieldId = v),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  _InfoCard(title: 'Live sensors', subtitle: 'Showing live soil data for ${selected.name}', icon: Icons.sensors_outlined, fullWidth: true),
-                  const SizedBox(height: 8),
-                  _InfoCard(title: 'Field status', subtitle: 'Healthy profile and stable irrigation signals.', icon: Icons.check_circle_outline, fullWidth: true),
-                  const SizedBox(height: 12),
-                  GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: metrics.length,
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                      childAspectRatio: 0.96,
-                    ),
-                    itemBuilder: (context, index) => SoilMetricCard(metric: metrics[index]),
-                  ),
-                  const SizedBox(height: 12),
-                  _CompostRecommendationCard(recommendation: recommendation),
-                ],
-              );
-            },
+          Row(
+            children: [
+              Text(field.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF22302A))),
+              const Spacer(),
+              if (field.isWarning)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(color: const Color(0xFFFDEBE3), borderRadius: BorderRadius.circular(999)),
+                  child: const Text('Warning', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Color(0xFFD45B2E))),
+                ),
+            ],
           ),
-          const SizedBox(height: 12),
-          const _InfoCard(title: 'Irrigation window', subtitle: 'Next optimal watering window is 6:00 PM.', icon: Icons.water_drop_outlined, fullWidth: true),
+          const SizedBox(height: 10),
+          Text('${field.moisture}%', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: field.color, height: 1)),
+          const SizedBox(height: 4),
+          Text('Moisture', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: field.color.withOpacity(0.8))),
+          const SizedBox(height: 8),
+          Text(field.status, style: TextStyle(fontSize: 12, color: field.isWarning ? const Color(0xFFD45B2E) : const Color(0xFF5E7B67), fontWeight: FontWeight.w600)),
         ],
+      ),
+    );
+  }
+}
+
+class _MonitorDetailsView extends StatelessWidget {
+  final List<_DetailSensor> sensors;
+
+  const _MonitorDetailsView({super.key, required this.sensors});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Details', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF22302A))),
+        const SizedBox(height: 12),
+        ...sensors.map((sensor) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _DetailSensorCard(sensor: sensor),
+            )),
+      ],
+    );
+  }
+}
+
+class _DetailSensorCard extends StatelessWidget {
+  final _DetailSensor sensor;
+
+  const _DetailSensorCard({required this.sensor});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: sensor.color.withOpacity(0.16)),
+        boxShadow: const [BoxShadow(color: Color(0x08000000), blurRadius: 10, offset: Offset(0, 4))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(sensor.title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF22302A))),
+              const Spacer(),
+              _SmallStat(label: 'Current', value: sensor.current, color: sensor.color),
+              const SizedBox(width: 8),
+              _SmallStat(label: 'Avg', value: sensor.average, color: sensor.color),
+            ],
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            height: 120,
+            width: double.infinity,
+            child: CustomPaint(
+              painter: _BarSeriesPainter(values: sensor.bars, color: sensor.color),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              _SmallStat(label: 'Peak', value: sensor.peak, color: sensor.color),
+              const SizedBox(width: 8),
+              _SmallStat(label: 'Low', value: sensor.low, color: sensor.color),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SmallStat extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color color;
+
+  const _SmallStat({required this.label, required this.value, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: TextStyle(fontSize: 10, color: color.withOpacity(0.72), fontWeight: FontWeight.w700)),
+          const SizedBox(height: 2),
+          Text(value, style: TextStyle(fontSize: 12, color: color, fontWeight: FontWeight.w900)),
+        ],
+      ),
+    );
+  }
+}
+
+class _BarSeriesPainter extends CustomPainter {
+  final List<double> values;
+  final Color color;
+
+  _BarSeriesPainter({required this.values, required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (values.isEmpty) return;
+    final maxValue = values.reduce((a, b) => a > b ? a : b);
+    final gap = 4.0;
+    final barWidth = (size.width - gap * (values.length - 1)) / values.length;
+    final paint = Paint()
+      ..shader = LinearGradient(colors: [color.withOpacity(0.4), color], begin: Alignment.topCenter, end: Alignment.bottomCenter).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
+
+    for (var i = 0; i < values.length; i++) {
+      final barHeight = (values[i] / maxValue) * (size.height - 16);
+      final left = i * (barWidth + gap);
+      final top = size.height - barHeight;
+      canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(left, top, barWidth, barHeight), const Radius.circular(6)), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _BarSeriesPainter oldDelegate) => oldDelegate.values != values || oldDelegate.color != color;
+}
+
+class _MonitorExportView extends StatelessWidget {
+  final VoidCallback onShare;
+
+  const _MonitorExportView({super.key, required this.onShare});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Export', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF22302A))),
+        const SizedBox(height: 12),
+        _ExportActionCard(icon: Icons.picture_as_pdf_outlined, title: 'PDF report', subtitle: 'Download a printable report', color: const Color(0xFFE46E45), onTap: onShare),
+        const SizedBox(height: 10),
+        _ExportActionCard(icon: Icons.table_chart_outlined, title: 'CSV data', subtitle: 'Export sensor rows for analysis', color: const Color(0xFF22A06B), onTap: onShare),
+        const SizedBox(height: 10),
+        _ExportActionCard(icon: Icons.image_outlined, title: 'PNG chart', subtitle: 'Save the current chart snapshot', color: const Color(0xFF8A63F7), onTap: onShare),
+        const SizedBox(height: 10),
+        _ExportActionCard(icon: Icons.share_outlined, title: 'Share live data', subtitle: 'Send live data to a friend', color: const Color(0xFF2F6B3D), onTap: onShare),
+      ],
+    );
+  }
+}
+
+class _ExportActionCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _ExportActionCard({required this.icon, required this.title, required this.subtitle, required this.color, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: color.withOpacity(0.16)),
+            boxShadow: const [BoxShadow(color: Color(0x08000000), blurRadius: 10, offset: Offset(0, 4))],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(color: color.withOpacity(0.12), borderRadius: BorderRadius.circular(16)),
+                child: Icon(icon, color: color),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Color(0xFF22302A))),
+                    const SizedBox(height: 3),
+                    Text(subtitle, style: const TextStyle(fontSize: 12, color: Color(0xFF78837A), height: 1.3)),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right, color: Color(0xFFB9BFB7)),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -1303,12 +2022,55 @@ class _FarmerGraphTab extends StatefulWidget {
 
 class _FarmerGraphTabState extends State<_FarmerGraphTab> {
   String? _selectedFieldId;
+  String _selectedMetric = 'Moisture';
+
+  static const Map<String, _GraphMetricData> _metricData = {
+    'Moisture': _GraphMetricData(
+      label: 'Moisture %',
+      subtitle: 'last 7 days',
+      color: Color(0xFF47B890),
+      accent: Color(0xFFDDF6EE),
+      values: [62, 70, 58, 79, 68, 83, 71],
+      days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+      average: '68%',
+      trend: '+4% vs last week',
+      trendColor: Color(0xFF159A69),
+      summaryOne: 'Avg moisture',
+      summaryTwo: 'Stable uptake',
+    ),
+    'Temp': _GraphMetricData(
+      label: 'Temp °C',
+      subtitle: 'last 7 days',
+      color: Color(0xFFE46E45),
+      accent: Color(0xFFFDE9E0),
+      values: [27, 28, 26, 29, 27, 30, 28],
+      days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+      average: '28.2°C',
+      trend: 'Stable range',
+      trendColor: Color(0xFFE46E45),
+      summaryOne: 'Avg temp',
+      summaryTwo: 'Comfort zone',
+    ),
+    'pH': _GraphMetricData(
+      label: 'pH level',
+      subtitle: 'last 7 days',
+      color: Color(0xFF8A63F7),
+      accent: Color(0xFFF0EAFF),
+      values: [6.2, 6.4, 6.5, 6.6, 6.5, 6.8, 6.7],
+      days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+      average: '6.5',
+      trend: 'Slightly acidic',
+      trendColor: Color(0xFF8A63F7),
+      summaryOne: 'Avg pH',
+      summaryTwo: 'Balanced soil',
+    ),
+  };
 
   @override
   Widget build(BuildContext context) {
     return _SingleTabScaffold(
       title: 'Graph',
-      subtitle: 'Condition trend graph for each field',
+      subtitle: '7-day trends',
       onLogout: widget.onLogout,
       child: AnimatedBuilder(
         animation: FieldService(),
@@ -1317,7 +2079,7 @@ class _FarmerGraphTabState extends State<_FarmerGraphTab> {
           if (fields.isEmpty) {
             return const _InfoCard(
               title: 'No fields yet',
-              subtitle: 'Add a field on the Home page to start showing graph data.',
+              subtitle: 'Add a friend on the Home page to start showing graph data.',
               icon: Icons.show_chart_outlined,
               fullWidth: true,
             );
@@ -1325,56 +2087,368 @@ class _FarmerGraphTabState extends State<_FarmerGraphTab> {
 
           _selectedFieldId ??= fields.first.id;
           final selectedField = fields.firstWhere((field) => field.id == _selectedFieldId, orElse: () => fields.first);
-
-          final conditionPoints = <double>[58, 62, 61, 67, 70, 74, 78];
-          final moisturePoints = <double>[48, 51, 53, 55, 57, 60, 63];
+          final metric = _metricData[_selectedMetric] ?? _metricData['Moisture']!;
+          final chartTitle = '${metric.label} — ${metric.subtitle}';
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF2F6B3D), Color(0xFF1D4D2B)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(22),
+                  boxShadow: const [BoxShadow(color: Color(0x28000000), blurRadius: 18, offset: Offset(0, 8))],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Graph', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Colors.white)),
+                              const SizedBox(height: 2),
+                              Text(
+                                selectedField.name,
+                                style: TextStyle(fontSize: 13, color: Colors.white.withOpacity(0.86), fontWeight: FontWeight.w600),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.14),
+                            borderRadius: BorderRadius.circular(999),
+                            border: Border.all(color: Colors.white.withOpacity(0.2)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.calendar_month_outlined, size: 16, color: Colors.white),
+                              const SizedBox(width: 6),
+                              Text('7-day trends', style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.92), fontWeight: FontWeight.w700)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: DropdownButtonFormField<String>(
+                            value: _selectedFieldId,
+                            dropdownColor: Colors.white,
+                            decoration: InputDecoration(
+                              filled: true,
+                              fillColor: Colors.white.withOpacity(0.92),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                            ),
+                            items: fields.map((field) => DropdownMenuItem(value: field.id, child: Text(field.name))).toList(),
+                            onChanged: (value) => setState(() => _selectedFieldId = value),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.14),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: Colors.white.withOpacity(0.16)),
+                          ),
+                          child: const Icon(Icons.show_chart_rounded, color: Colors.white),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
               Row(
                 children: [
-                  const Text('Selected field:', style: TextStyle(fontWeight: FontWeight.w700)),
-                  const SizedBox(width: 12),
-                  DropdownButton<String>(
-                    value: _selectedFieldId,
-                    items: fields.map((field) => DropdownMenuItem(value: field.id, child: Text(field.name))).toList(),
-                    onChanged: (value) => setState(() => _selectedFieldId = value),
+                  _MetricChip(
+                    label: 'Moisture',
+                    selected: _selectedMetric == 'Moisture',
+                    color: const Color(0xFF2F6B3D),
+                    onTap: () => setState(() => _selectedMetric = 'Moisture'),
+                  ),
+                  const SizedBox(width: 8),
+                  _MetricChip(
+                    label: 'Temp',
+                    selected: _selectedMetric == 'Temp',
+                    color: const Color(0xFFE46E45),
+                    onTap: () => setState(() => _selectedMetric = 'Temp'),
+                  ),
+                  const SizedBox(width: 8),
+                  _MetricChip(
+                    label: 'pH',
+                    selected: _selectedMetric == 'pH',
+                    color: const Color(0xFF8A63F7),
+                    onTap: () => setState(() => _selectedMetric = 'pH'),
                   ),
                 ],
               ),
               const SizedBox(height: 12),
-              _InfoCard(
-                title: 'Condition overview',
-                subtitle: 'Trend line for ${selectedField.name} over the last 7 days.',
-                icon: Icons.show_chart_outlined,
-                fullWidth: true,
+              _WeeklyChartCard(
+                title: chartTitle,
+                metric: metric,
               ),
               const SizedBox(height: 12),
-              _ConditionGraphCard(
-                title: 'Soil condition score',
-                color: const Color(0xFF2F6B3D),
-                points: conditionPoints,
-                labels: const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-              ),
-              const SizedBox(height: 12),
-              _ConditionGraphCard(
-                title: 'Moisture trend',
-                color: const Color(0xFF2C7BE5),
-                points: moisturePoints,
-                labels: const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-              ),
-              const SizedBox(height: 12),
-              const Row(
+              const Text('Summary stats', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Color(0xFF203326))),
+              const SizedBox(height: 10),
+              Row(
                 children: [
-                  Expanded(child: _SummaryTile(label: 'Weekly rise', value: '+20%', icon: Icons.trending_up, color: Color(0xFF2F6B3D))),
-                  SizedBox(width: 12),
-                  Expanded(child: _SummaryTile(label: 'Average score', value: '68', icon: Icons.analytics_outlined, color: Color(0xFF2C7BE5))),
+                  Expanded(
+                    child: _GraphSummaryCard(
+                      label: metric.summaryOne,
+                      value: metric.average,
+                      note: metric.trend,
+                      color: metric.color,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _GraphSummaryCard(
+                      label: 'Selected field',
+                      value: selectedField.name,
+                      note: 'Live dashboard data',
+                      color: const Color(0xFF2F6B3D),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _GraphSummaryCard(
+                      label: 'Avg temp',
+                      value: '28.2°C',
+                      note: 'Stable range',
+                      color: const Color(0xFFE46E45),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _GraphSummaryCard(
+                      label: 'Avg pH',
+                      value: '6.5',
+                      note: 'Slightly acidic',
+                      color: const Color(0xFF8A63F7),
+                    ),
+                  ),
                 ],
               ),
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+class _GraphMetricData {
+  final String label;
+  final String subtitle;
+  final Color color;
+  final Color accent;
+  final List<double> values;
+  final List<String> days;
+  final String average;
+  final String trend;
+  final Color trendColor;
+  final String summaryOne;
+  final String summaryTwo;
+
+  const _GraphMetricData({
+    required this.label,
+    required this.subtitle,
+    required this.color,
+    required this.accent,
+    required this.values,
+    required this.days,
+    required this.average,
+    required this.trend,
+    required this.trendColor,
+    required this.summaryOne,
+    required this.summaryTwo,
+  });
+}
+
+class _MetricChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _MetricChip({required this.label, required this.selected, required this.color, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: selected ? color : Colors.white,
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: selected ? color : const Color(0xFFD7DED4)),
+            boxShadow: selected ? [BoxShadow(color: color.withOpacity(0.18), blurRadius: 12, offset: const Offset(0, 4))] : const [],
+          ),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: selected ? Colors.white : const Color(0xFF6F7B6F),
+              fontWeight: FontWeight.w700,
+              fontSize: 13,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _WeeklyChartCard extends StatelessWidget {
+  final String title;
+  final _GraphMetricData metric;
+
+  const _WeeklyChartCard({required this.title, required this.metric});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFE1E7DD)),
+        boxShadow: const [BoxShadow(color: Color(0x08000000), blurRadius: 10, offset: Offset(0, 4))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: metric.color)),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 128,
+            child: CustomPaint(
+              painter: _WeeklyBarPainter(
+                values: metric.values,
+                color: metric.color,
+                labels: metric.days,
+              ),
+              child: const SizedBox.expand(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WeeklyBarPainter extends CustomPainter {
+  final List<double> values;
+  final Color color;
+  final List<String> labels;
+
+  _WeeklyBarPainter({required this.values, required this.color, required this.labels});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (values.isEmpty) return;
+
+    const topPadding = 10.0;
+    const bottomPadding = 22.0;
+    const sidePadding = 6.0;
+    final plotHeight = size.height - topPadding - bottomPadding;
+    final barAreaWidth = size.width - (sidePadding * 2);
+    final gap = 6.0;
+    final barWidth = (barAreaWidth - gap * (values.length - 1)) / values.length;
+    final maxValue = values.reduce((a, b) => a > b ? a : b);
+
+    final backgroundPaint = Paint()..color = const Color(0xFFF3F6F1);
+    final barPaint = Paint()
+      ..shader = LinearGradient(
+        colors: [color.withOpacity(0.42), color],
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
+
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(Rect.fromLTWH(0, 0, size.width, size.height - bottomPadding + 4), const Radius.circular(16)),
+      backgroundPaint,
+    );
+
+    for (var i = 0; i < values.length; i++) {
+      final barHeight = (values[i] / maxValue) * plotHeight;
+      final left = sidePadding + i * (barWidth + gap);
+      final top = topPadding + (plotHeight - barHeight);
+      final rect = RRect.fromRectAndRadius(
+        Rect.fromLTWH(left, top, barWidth, barHeight),
+        const Radius.circular(6),
+      );
+
+      canvas.drawRRect(rect, barPaint);
+
+      final labelPainter = TextPainter(
+        text: TextSpan(
+          text: labels[i],
+          style: const TextStyle(fontSize: 10, color: Color(0xFF87938A), fontWeight: FontWeight.w600),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      labelPainter.paint(canvas, Offset(left + (barWidth - labelPainter.width) / 2, size.height - 16));
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _WeeklyBarPainter oldDelegate) {
+    return oldDelegate.values != values || oldDelegate.color != color || oldDelegate.labels != labels;
+  }
+}
+
+class _GraphSummaryCard extends StatelessWidget {
+  final String label;
+  final String value;
+  final String note;
+  final Color color;
+
+  const _GraphSummaryCard({required this.label, required this.value, required this.note, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: color.withOpacity(0.16)),
+        boxShadow: const [BoxShadow(color: Color(0x08000000), blurRadius: 10, offset: Offset(0, 4))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF66757C), fontWeight: FontWeight.w600)),
+          const SizedBox(height: 6),
+          Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: color, height: 1)),
+          const SizedBox(height: 4),
+          Text(note, style: TextStyle(fontSize: 11.5, color: color.withOpacity(0.85), fontWeight: FontWeight.w600)),
+        ],
       ),
     );
   }
@@ -1740,23 +2814,266 @@ class _FarmerProfileTab extends StatelessWidget {
 
   const _FarmerProfileTab({required this.onLogout});
 
+  void _showShortcut(BuildContext context, String title) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('$title opened')),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return _SingleTabScaffold(
-      title: 'Farmer Profile',
-      subtitle: 'Farmer account and field summary',
-      onLogout: onLogout,
+    return Scaffold(
+      body: Stack(
+        children: [
+          const _DashboardBackdrop(),
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const CircleAvatar(
+                        radius: 22,
+                        backgroundColor: Color(0xFFB8D1A8),
+                        child: Text('রহ', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Colors.white)),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('রহিম উদ্দিন', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFFEAF2E6), height: 1.1)),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Gazipur · 3 fields connected',
+                              style: TextStyle(fontSize: 13, color: Colors.white.withOpacity(0.84), fontWeight: FontWeight.w600),
+                            ),
+                          ],
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: onLogout,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(999),
+                            border: Border.all(color: Colors.white.withOpacity(0.16)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: const [
+                              Icon(Icons.logout, size: 16, color: Colors.white),
+                              SizedBox(width: 6),
+                              Text('Logout', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 12)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(26),
+                      boxShadow: const [BoxShadow(color: Color(0x0B000000), blurRadius: 18, offset: Offset(0, 8))],
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              width: 58,
+                              height: 58,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF0F5EC),
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                              child: const Icon(Icons.person_outline, color: Color(0xFF3D6F43), size: 30),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text('Profile Dashboard', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF22302A))),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Manage tools, logs, and weather from one place.',
+                                    style: TextStyle(fontSize: 13, color: const Color(0xFF647070).withOpacity(0.95), height: 1.35),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 14),
+                        Row(
+                          children: const [
+                            Expanded(child: _ProfileStatPill(label: 'Field Map', value: '3 connected')),
+                            SizedBox(width: 10),
+                            Expanded(child: _ProfileStatPill(label: 'AI Advice', value: 'Enabled')),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _ProfileShortcutCard(
+                    icon: Icons.map_outlined,
+                    iconColor: const Color(0xFF5B8E45),
+                    backgroundColor: const Color(0xFFF1F7E8),
+                    title: 'Field Map',
+                    subtitle: 'Manage your farm zones',
+                    onTap: () => _showShortcut(context, 'Field Map'),
+                  ),
+                  const SizedBox(height: 10),
+                  _ProfileShortcutCard(
+                    icon: Icons.eco_outlined,
+                    iconColor: const Color(0xFFC67A1F),
+                    backgroundColor: const Color(0xFFFDF3E6),
+                    title: 'Crop Advice',
+                    subtitle: 'AI suggestions based on soil',
+                    onTap: () => _showShortcut(context, 'Crop Advice'),
+                  ),
+                  const SizedBox(height: 10),
+                  _ProfileShortcutCard(
+                    icon: Icons.cloud_outlined,
+                    iconColor: const Color(0xFF3776C7),
+                    backgroundColor: const Color(0xFFEAF2FF),
+                    title: 'Weather',
+                    subtitle: 'Forecast & rain alerts',
+                    onTap: () => _showShortcut(context, 'Weather'),
+                  ),
+                  const SizedBox(height: 10),
+                  _ProfileShortcutCard(
+                    icon: Icons.calculate_outlined,
+                    iconColor: const Color(0xFF6B63D9),
+                    backgroundColor: const Color(0xFFF0EDFF),
+                    title: 'Compost Calculator',
+                    subtitle: 'Get compost amount by area',
+                    onTap: () => _showShortcut(context, 'Compost Calculator'),
+                  ),
+                  const SizedBox(height: 10),
+                  _ProfileShortcutCard(
+                    icon: Icons.receipt_long_outlined,
+                    iconColor: const Color(0xFF707070),
+                    backgroundColor: const Color(0xFFF3F1EB),
+                    title: 'Activity Log',
+                    subtitle: 'Fertilizer & water diary',
+                    onTap: () => _showShortcut(context, 'Activity Log'),
+                  ),
+                  const SizedBox(height: 10),
+                  _ProfileShortcutCard(
+                    icon: Icons.settings_outlined,
+                    iconColor: const Color(0xFF5A5A5A),
+                    backgroundColor: const Color(0xFFF1F1F1),
+                    title: 'Settings',
+                    subtitle: 'Sensor config, language',
+                    onTap: () => _showShortcut(context, 'Settings'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProfileStatPill extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _ProfileStatPill({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF7FAF4),
+        borderRadius: BorderRadius.circular(18),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
-          _InfoCard(title: 'Account', subtitle: 'Signed in and ready to use.', icon: Icons.verified_user_outlined, fullWidth: true),
-          SizedBox(height: 12),
-          _InfoCard(title: 'Farm Plot A12', subtitle: 'Role-specific profile detail', icon: Icons.chevron_right, fullWidth: true),
-          SizedBox(height: 12),
-          _InfoCard(title: 'Active irrigation plan', subtitle: 'Role-specific profile detail', icon: Icons.chevron_right, fullWidth: true),
-          SizedBox(height: 12),
-          _InfoCard(title: 'Preferred alerts enabled', subtitle: 'Role-specific profile detail', icon: Icons.chevron_right, fullWidth: true),
+        children: [
+          Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF6B7A67), fontWeight: FontWeight.w600)),
+          const SizedBox(height: 4),
+          Text(value, style: const TextStyle(fontSize: 13, color: Color(0xFF213028), fontWeight: FontWeight.w800)),
         ],
+      ),
+    );
+  }
+}
+
+class _ProfileShortcutCard extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final Color backgroundColor;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  const _ProfileShortcutCard({
+    required this.icon,
+    required this.iconColor,
+    required this.backgroundColor,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(18),
+      elevation: 0,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: const Color(0xFFE6E8E3)),
+            boxShadow: const [BoxShadow(color: Color(0x08000000), blurRadius: 10, offset: Offset(0, 4))],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: backgroundColor,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(icon, color: iconColor, size: 24),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Color(0xFF222B24))),
+                    const SizedBox(height: 3),
+                    Text(subtitle, style: const TextStyle(fontSize: 12, color: Color(0xFF78837A), height: 1.3)),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Icon(Icons.chevron_right, color: Color(0xFFB9BFB7)),
+            ],
+          ),
+        ),
       ),
     );
   }

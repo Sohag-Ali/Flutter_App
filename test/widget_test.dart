@@ -91,6 +91,49 @@ void main() {
     expect(find.text('Welcome Back'), findsOneWidget);
   });
 
+  testWidgets('Monitor page shows live compare details and export tabs', (WidgetTester tester) async {
+    await tester.pumpWidget(const MyApp());
+
+    await tester.enterText(find.byType(TextField).at(0), 'test@example.com');
+    await tester.enterText(find.byType(TextField).at(1), 'password123');
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Sign In'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Monitor'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Live · updated 12s ago'), findsWidgets);
+    expect(find.text('Compare'), findsWidgets);
+    expect(find.text('Details'), findsWidgets);
+    expect(find.text('Export'), findsWidgets);
+    expect(find.textContaining('Phosphorus'), findsWidgets);
+
+    await tester.tap(find.text('Compare').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Warning'), findsWidgets);
+    expect(find.textContaining('Field B'), findsOneWidget);
+
+    await tester.tap(find.text('Details').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Details'), findsWidgets);
+    expect(find.textContaining('Current'), findsWidgets);
+    expect(find.textContaining('Avg'), findsWidgets);
+    expect(find.textContaining('Peak'), findsWidgets);
+    expect(find.textContaining('Low'), findsWidgets);
+
+    await tester.tap(find.text('Export').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('PDF report'), findsOneWidget);
+    expect(find.text('CSV data'), findsOneWidget);
+    expect(find.text('PNG chart'), findsOneWidget);
+    expect(find.text('Share live data'), findsOneWidget);
+  });
+
   testWidgets('Alerts page shows active and resolved alert cards', (WidgetTester tester) async {
     await tester.pumpWidget(const MyApp());
 
@@ -114,5 +157,61 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('Just now'), findsWidgets);
+  });
+
+  testWidgets('Graph page renders metric chips and summary cards', (WidgetTester tester) async {
+    await tester.pumpWidget(const MyApp());
+
+    await tester.enterText(find.byType(TextField).at(0), 'test@example.com');
+    await tester.enterText(find.byType(TextField).at(1), 'password123');
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Sign In'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Graph'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Graph'), findsWidgets);
+    expect(find.text('7-day trends'), findsWidgets);
+    expect(find.text('Moisture'), findsWidgets);
+    expect(find.text('Temp'), findsWidgets);
+    expect(find.text('pH'), findsWidgets);
+    expect(find.text('Summary stats'), findsOneWidget);
+    expect(find.text('Avg moisture'), findsOneWidget);
+    expect(find.text('Avg temp'), findsOneWidget);
+
+    await tester.tap(find.text('Temp').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Stable range'), findsWidgets);
+  });
+
+  testWidgets('Profile page renders shortcut cards', (WidgetTester tester) async {
+    await tester.pumpWidget(const MyApp());
+
+    await tester.enterText(find.byType(TextField).at(0), 'test@example.com');
+    await tester.enterText(find.byType(TextField).at(1), 'password123');
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Sign In'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Profile'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('রহিম উদ্দিন'), findsOneWidget);
+    expect(find.text('Gazipur · 3 fields connected'), findsOneWidget);
+    expect(find.text('Field Map'), findsWidgets);
+    expect(find.text('Crop Advice'), findsOneWidget);
+    expect(find.text('Weather'), findsOneWidget);
+    expect(find.text('Compost Calculator'), findsOneWidget);
+    expect(find.text('Activity Log'), findsOneWidget);
+    expect(find.text('Settings'), findsOneWidget);
+
+    await tester.tap(find.text('Field Map').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Field Map opened'), findsOneWidget);
   });
 }
