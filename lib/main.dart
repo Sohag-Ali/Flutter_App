@@ -95,8 +95,19 @@ class AuthService {
 class FieldItem {
   final String id;
   final String name;
+  final String location;
+  final String area;
+  final String soilType;
+  final String description;
 
-  const FieldItem({required this.id, required this.name});
+  const FieldItem({
+    required this.id,
+    required this.name,
+    this.location = 'Unknown location',
+    this.area = '--',
+    this.soilType = 'Unknown',
+    this.description = '',
+  });
 }
 
 class FieldService extends ChangeNotifier {
@@ -107,8 +118,8 @@ class FieldService extends ChangeNotifier {
   factory FieldService() => _instance;
 
   final List<FieldItem> _fields = <FieldItem>[
-    const FieldItem(id: 'field-1', name: 'Field 1'),
-    const FieldItem(id: 'field-2', name: 'Field 2'),
+    const FieldItem(id: 'field-1', name: 'Field 1', location: 'Gazipur', area: '2.5 বিঘা', soilType: 'Loam', description: 'North side demo plot'),
+    const FieldItem(id: 'field-2', name: 'Field 2', location: 'Savar', area: '1.8 বিঘা', soilType: 'Clay Loam', description: 'South side demo plot'),
   ];
 
   List<FieldItem> get fields => List.unmodifiable(_fields);
@@ -2815,9 +2826,14 @@ class _FarmerProfileTab extends StatelessWidget {
   const _FarmerProfileTab({required this.onLogout});
 
   void _showShortcut(BuildContext context, String title) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$title opened')),
-    );
+    if (title == 'Field Map') {
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(builder: (_) => const _FieldMapPage()),
+      );
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$title opened')));
   }
 
   @override
@@ -3077,6 +3093,497 @@ class _ProfileShortcutCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class _FieldMapPage extends StatefulWidget {
+  const _FieldMapPage();
+
+  @override
+  State<_FieldMapPage> createState() => _FieldMapPageState();
+}
+
+class _FieldMapPageState extends State<_FieldMapPage> {
+  void _openAddField() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => const _AddFieldPage()),
+    );
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Stack(
+        children: [
+          const _MonitorBackdrop(),
+          SafeArea(
+            child: AnimatedBuilder(
+              animation: FieldService(),
+              builder: (context, _) {
+                final fields = FieldService().fields;
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          IconButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+                          ),
+                          const SizedBox(width: 4),
+                          const Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Field Map', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Colors.white)),
+                                SizedBox(height: 2),
+                                Text('Manage your farm zones', style: TextStyle(fontSize: 12, color: Color(0xE6FFFFFF), fontWeight: FontWeight.w600)),
+                              ],
+                            ),
+                          ),
+                          FilledButton.icon(
+                            onPressed: _openAddField,
+                            icon: const Icon(Icons.add),
+                            label: const Text('Add field'),
+                            style: FilledButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: const Color(0xFF245C31),
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      _FieldMapPreview(onAddTap: _openAddField),
+                      const SizedBox(height: 14),
+                      if (fields.isNotEmpty)
+                        ...fields.map(
+                          (field) => Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: _FieldZoneCard(field: field),
+                          ),
+                        ),
+                      if (fields.isEmpty)
+                        const _EmptyFieldState(),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FieldMapPreview extends StatelessWidget {
+  final VoidCallback onAddTap;
+
+  const _FieldMapPreview({required this.onAddTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.92),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFDDE8D9)),
+        boxShadow: const [BoxShadow(color: Color(0x0D000000), blurRadius: 18, offset: Offset(0, 8))],
+      ),
+      child: Column(
+        children: [
+          Container(
+            height: 170,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: const LinearGradient(
+                colors: [Color(0xFFCFE6C0), Color(0xFFB9D8AE)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: CustomPaint(painter: _FieldGridPainter()),
+                ),
+                Positioned(
+                  left: 14,
+                  top: 14,
+                  child: _MiniPlot(color: const Color(0xFF87BD59), label: 'Field A'),
+                ),
+                Positioned(
+                  left: 105,
+                  top: 72,
+                  child: _MiniPlot(color: const Color(0xFFF0D96A), label: 'Field B'),
+                ),
+                Positioned(
+                  right: 14,
+                  top: 14,
+                  child: _MiniPlot(color: const Color(0xFF9BD5AF), label: 'Field C'),
+                ),
+                Positioned(
+                  left: 16,
+                  bottom: 14,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(color: Colors.white.withOpacity(0.82), borderRadius: BorderRadius.circular(14)),
+                    child: const Text('tap + to add new field', style: TextStyle(fontSize: 11, color: Color(0xFF557255), fontWeight: FontWeight.w600)),
+                  ),
+                ),
+                Positioned(
+                  right: 14,
+                  bottom: 14,
+                  child: FloatingActionButton(
+                    onPressed: onAddTap,
+                    backgroundColor: const Color(0xFF2F6B3D),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    child: const Icon(Icons.add, size: 30),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FieldGridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.35)
+      ..strokeWidth = 2;
+    for (var x = 1; x < 3; x++) {
+      final dx = size.width * x / 3;
+      canvas.drawLine(Offset(dx, 8), Offset(dx, size.height - 8), paint);
+    }
+    for (var y = 1; y < 3; y++) {
+      final dy = size.height * y / 3;
+      canvas.drawLine(Offset(8, dy), Offset(size.width - 8, dy), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _MiniPlot extends StatelessWidget {
+  final Color color;
+  final String label;
+
+  const _MiniPlot({required this.color, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 70,
+      height: 40,
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.72),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.white.withOpacity(0.35)),
+      ),
+      child: Center(
+        child: Text(label, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
+      ),
+    );
+  }
+}
+
+class _FieldZoneCard extends StatelessWidget {
+  final FieldItem field;
+
+  const _FieldZoneCard({required this.field});
+
+  @override
+  Widget build(BuildContext context) {
+    final healthy = field.id.hashCode.isEven;
+    final statusColor = healthy ? const Color(0xFF1E8E5A) : const Color(0xFFD58A22);
+    final statusLabel = healthy ? 'Healthy' : 'Warning';
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFE1E8DB)),
+        boxShadow: const [BoxShadow(color: Color(0x08000000), blurRadius: 10, offset: Offset(0, 4))],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF1F7EA),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(Icons.place_outlined, color: Color(0xFF7AA248)),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(field.name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Color(0xFF22302A))),
+                const SizedBox(height: 2),
+                Text('${field.location} · ${field.area}', style: const TextStyle(fontSize: 12, color: Color(0xFF617067), fontWeight: FontWeight.w600)),
+                if (field.description.isNotEmpty) ...[
+                  const SizedBox(height: 3),
+                  Text(field.description, style: const TextStyle(fontSize: 11, color: Color(0xFF839185))),
+                ],
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              color: statusColor.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(statusLabel, style: TextStyle(fontSize: 11, color: statusColor, fontWeight: FontWeight.w800)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EmptyFieldState extends StatelessWidget {
+  const _EmptyFieldState();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.86),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFDDE8D9), style: BorderStyle.solid),
+      ),
+      child: const Center(
+        child: Text('No field added yet. Tap + button to add one.', style: TextStyle(fontSize: 13, color: Color(0xFF607067), fontWeight: FontWeight.w600)),
+      ),
+    );
+  }
+}
+
+class _AddFieldPage extends StatefulWidget {
+  const _AddFieldPage();
+
+  @override
+  State<_AddFieldPage> createState() => _AddFieldPageState();
+}
+
+class _AddFieldPageState extends State<_AddFieldPage> {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _locationController = TextEditingController();
+  final _areaController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  String _soilType = 'Loam';
+
+  final List<String> _soilTypes = const ['Loam', 'Clay Loam', 'Sandy Loam', 'Clay', 'Silt'];
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _locationController.dispose();
+    _areaController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (!_formKey.currentState!.validate()) return;
+
+    final nextNumber = FieldService().fields.length + 1;
+    FieldService().addField(
+      FieldItem(
+        id: 'field-$nextNumber-${DateTime.now().millisecondsSinceEpoch}',
+        name: _nameController.text.trim(),
+        location: _locationController.text.trim(),
+        area: _areaController.text.trim(),
+        soilType: _soilType,
+        description: _descriptionController.text.trim(),
+      ),
+    );
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Field added successfully')));
+    Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Stack(
+        children: [
+          const _MonitorBackdrop(),
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      IconButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+                      ),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Add new field', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Colors.white)),
+                            SizedBox(height: 2),
+                            Text('Step 1 of 4', style: TextStyle(fontSize: 12, color: Color(0xE6FFFFFF), fontWeight: FontWeight.w600)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.92),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: const Color(0xFFDDE8D9)),
+                      boxShadow: const [BoxShadow(color: Color(0x0D000000), blurRadius: 16, offset: Offset(0, 8))],
+                    ),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Center(
+                            child: Container(
+                              width: 72,
+                              height: 10,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE0E7DA),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: FractionallySizedBox(
+                                  widthFactor: 0.34,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF245C31),
+                                      borderRadius: BorderRadius.circular(999),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                          const Text('Basic info', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF22302A))),
+                          const SizedBox(height: 4),
+                          const Text('Field er naam o location din', style: TextStyle(fontSize: 12, color: Color(0xFF6B7A67), fontWeight: FontWeight.w600)),
+                          const SizedBox(height: 14),
+                          TextFormField(
+                            controller: _nameController,
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+                            decoration: _addFieldDecoration('Field name *', 'যেমন: উত্তর মাঠ, Field A'),
+                            validator: (value) => (value == null || value.trim().isEmpty) ? 'Field name is required' : null,
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _areaController,
+                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+                                  decoration: _addFieldDecoration('Area (বিঘা)', 'যেমন: 2.5'),
+                                  validator: (value) => (value == null || value.trim().isEmpty) ? 'Area is required' : null,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: DropdownButtonFormField<String>(
+                                  value: _soilType,
+                                  dropdownColor: const Color(0xFF2D2D2D),
+                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+                                  decoration: _addFieldDecoration('Soil type', 'বেছে নিন'),
+                                  items: _soilTypes
+                                      .map((type) => DropdownMenuItem(value: type, child: Text(type)))
+                                      .toList(),
+                                  onChanged: (value) {
+                                    if (value != null) setState(() => _soilType = value);
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: _locationController,
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+                            decoration: _addFieldDecoration('Location', 'যেমন: Gazipur, North side'),
+                            validator: (value) => (value == null || value.trim().isEmpty) ? 'Location is required' : null,
+                          ),
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: _descriptionController,
+                            maxLines: 3,
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+                            decoration: _addFieldDecoration('Description (optional)', 'সংক্ষিপ্ত বিবরণ...'),
+                          ),
+                          const SizedBox(height: 18),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: _submit,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF245C31),
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 15),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              ),
+                              child: const Text('Save field', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+InputDecoration _addFieldDecoration(String label, String hint) {
+  return InputDecoration(
+    labelText: label,
+    hintText: hint,
+    labelStyle: const TextStyle(color: Colors.white70, fontWeight: FontWeight.w700),
+    hintStyle: TextStyle(color: Colors.white.withOpacity(0.3), fontWeight: FontWeight.w700),
+    filled: true,
+    fillColor: const Color(0xFF2E2E2E),
+    border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFF7BBE68), width: 1.5)),
+    errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFFE57373), width: 1.5)),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+  );
 }
 
 class _SingleTabScaffold extends StatelessWidget {

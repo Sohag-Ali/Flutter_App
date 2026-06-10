@@ -212,6 +212,27 @@ void main() {
     await tester.tap(find.text('Field Map').last);
     await tester.pumpAndSettle();
 
-    expect(find.text('Field Map opened'), findsOneWidget);
+    expect(find.text('Field Map'), findsWidgets);
+    expect(find.text('Field A'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Add field'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Add new field'), findsOneWidget);
+
+    final formFields = find.byType(TextFormField);
+    await tester.enterText(formFields.at(0), 'North Field');
+    await tester.enterText(formFields.at(1), '2.5 বিঘা');
+    await tester.enterText(formFields.at(2), 'Gazipur');
+    await tester.enterText(formFields.at(3), 'North side organic plot');
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Save field'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Field added successfully'), findsOneWidget);
+    await tester.pumpAndSettle();
+    expect(find.text('North Field'), findsOneWidget);
+    expect(find.textContaining('Gazipur'), findsWidgets);
   });
 }
