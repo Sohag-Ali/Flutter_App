@@ -1007,48 +1007,196 @@ class _FriendMetric {
   const _FriendMetric(this.title, this.value, this.unit, this.icon, this.color);
 }
 
-class _FriendMetricCard extends StatelessWidget {
+String _metricHint(String title) {
+  switch (title) {
+    case 'Moisture':
+      return 'Ideal for growth';
+    case 'Temperature':
+      return 'Stable';
+    case 'pH Level':
+    case 'pH':
+      return 'Slightly acidic';
+    case 'Nitrogen':
+      return 'Sufficient';
+    case 'Phosphorus':
+      return 'Moderate';
+    case 'Potassium':
+      return 'Balanced';
+    case 'Humidity':
+      return 'Comfortable';
+    case 'Soil Score':
+      return 'Healthy';
+    default:
+      return 'Local data';
+  }
+}
+
+double _metricRatio(_FriendMetric metric) {
+  final parsed = double.tryParse(metric.value);
+  if (parsed == null) {
+    return 0.5;
+  }
+
+  switch (metric.title) {
+    case 'Moisture':
+      return (parsed / 100).clamp(0.0, 1.0);
+    case 'Temperature':
+      return (parsed / 40).clamp(0.0, 1.0);
+    case 'pH Level':
+    case 'pH':
+      return ((parsed - 4.0) / 4.0).clamp(0.0, 1.0);
+    case 'Nitrogen':
+      return (parsed / 100).clamp(0.0, 1.0);
+    case 'Phosphorus':
+      return (parsed / 60).clamp(0.0, 1.0);
+    case 'Potassium':
+      return (parsed / 80).clamp(0.0, 1.0);
+    case 'Humidity':
+      return (parsed / 100).clamp(0.0, 1.0);
+    case 'Soil Score':
+      return (parsed / 100).clamp(0.0, 1.0);
+    default:
+      return 0.55;
+  }
+}
+
+class _FriendMetricCard extends StatefulWidget {
   final _FriendMetric metric;
 
   const _FriendMetricCard({required this.metric});
 
   @override
+  State<_FriendMetricCard> createState() => _FriendMetricCardState();
+}
+
+class _FriendMetricCardState extends State<_FriendMetricCard> {
+  bool _pressed = false;
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: metric.color.withOpacity(0.18)),
-        boxShadow: const [BoxShadow(color: Color(0x08000000), blurRadius: 10, offset: Offset(0, 4))],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: metric.color.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(12),
+    final progress = _metricRatio(widget.metric);
+
+    return AnimatedScale(
+      duration: const Duration(milliseconds: 140),
+      curve: Curves.easeOut,
+      scale: _pressed ? 0.985 : 1,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOut,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.92),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: widget.metric.color.withOpacity(0.18)),
+          boxShadow: [
+            BoxShadow(
+              color: widget.metric.color.withOpacity(_pressed ? 0.14 : 0.08),
+              blurRadius: _pressed ? 18 : 14,
+              offset: const Offset(0, 5),
             ),
-            child: Icon(metric.icon, color: metric.color, size: 20),
-          ),
-          const SizedBox(height: 12),
-          Text(metric.title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF1F2E25))),
-          const SizedBox(height: 8),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Text(metric.value, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: metric.color, height: 1)),
-              if (metric.unit.isNotEmpty) ...[
-                const SizedBox(width: 4),
-                Text(metric.unit, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: metric.color.withOpacity(0.72))),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(22),
+            onTapDown: (_) => setState(() => _pressed = true),
+            onTapCancel: () => setState(() => _pressed = false),
+            onTapUp: (_) => setState(() => _pressed = false),
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('${widget.metric.title}: ${widget.metric.value}${widget.metric.unit}')),
+              );
+            },
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [widget.metric.color.withOpacity(0.12), widget.metric.color.withOpacity(0.05)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 34,
+                        height: 34,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.95),
+                          shape: BoxShape.circle,
+                          boxShadow: [BoxShadow(color: widget.metric.color.withOpacity(0.18), blurRadius: 8)],
+                        ),
+                        child: Icon(widget.metric.icon, color: widget.metric.color, size: 18),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              widget.metric.title,
+                              style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800, color: Color(0xFF263238)),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              _metricHint(widget.metric.title),
+                              style: const TextStyle(fontSize: 10.5, color: Color(0xFF6B7280), fontWeight: FontWeight.w600),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 0, end: double.tryParse(widget.metric.value) ?? 0),
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeOutCubic,
+                      builder: (context, value, _) {
+                        return Text(
+                          value.toStringAsFixed(widget.metric.value.contains('.') ? 1 : 0),
+                          style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: widget.metric.color, height: 1),
+                        );
+                      },
+                    ),
+                    if (widget.metric.unit.isNotEmpty) ...[
+                      const SizedBox(width: 4),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 3),
+                        child: Text(
+                          widget.metric.unit,
+                          style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: widget.metric.color.withOpacity(0.75)),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                const Spacer(),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(999),
+                  child: LinearProgressIndicator(
+                    value: progress,
+                    minHeight: 7,
+                    backgroundColor: const Color(0xFFE8ECF1),
+                    valueColor: AlwaysStoppedAnimation<Color>(widget.metric.color),
+                  ),
+                ),
               ],
-            ],
+            ),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -1232,24 +1380,356 @@ class _FarmerGraphTabState extends State<_FarmerGraphTab> {
   }
 }
 
-class _FarmerAlertsTab extends StatelessWidget {
+class _AlertItem {
+  final String id;
+  final String title;
+  final String message;
+  final String timeLabel;
+  final Color color;
+  final IconData icon;
+
+  const _AlertItem({
+    required this.id,
+    required this.title,
+    required this.message,
+    required this.timeLabel,
+    required this.color,
+    required this.icon,
+  });
+}
+
+class _FarmerAlertsTab extends StatefulWidget {
   final VoidCallback onLogout;
 
   const _FarmerAlertsTab({required this.onLogout});
 
   @override
+  State<_FarmerAlertsTab> createState() => _FarmerAlertsTabState();
+}
+
+class _FarmerAlertsTabState extends State<_FarmerAlertsTab> {
+  final List<_AlertItem> _activeAlerts = [
+    const _AlertItem(
+      id: 'low-phosphorus',
+      title: 'Low Phosphorus  — Field A',
+      message: 'Level dropped to 28 ppm. Consider adding fertilizer.',
+      timeLabel: 'Today 8:14 AM',
+      color: Color(0xFFE45B5B),
+      icon: Icons.water_drop_outlined,
+    ),
+    const _AlertItem(
+      id: 'high-moisture',
+      title: 'High Moisture  — Field B',
+      message: 'Moisture at 89%. Risk of root rot if drainage poor.',
+      timeLabel: 'Today 6:30 AM',
+      color: Color(0xFFC97A1F),
+      icon: Icons.water_outlined,
+    ),
+    const _AlertItem(
+      id: 'rain-expected',
+      title: 'Rain expected tomorrow',
+      message: 'Forecast: 18mm rainfall. Adjust irrigation plan.',
+      timeLabel: 'Yesterday 11:00 PM',
+      color: Color(0xFF2C7BE5),
+      icon: Icons.umbrella_outlined,
+    ),
+  ];
+
+  final List<_AlertItem> _resolvedAlerts = [
+    const _AlertItem(
+      id: 'ph-normalized',
+      title: 'pH level normalized  — Field C',
+      message: 'System confirmed the soil pH is back in balance.',
+      timeLabel: 'Jun 9 · 3:20 PM',
+      color: Color(0xFFB6CC8A),
+      icon: Icons.check_circle_outline,
+    ),
+    const _AlertItem(
+      id: 'nitrogen-restored',
+      title: 'Nitrogen restored  — Field A',
+      message: 'Amendment cycle completed successfully.',
+      timeLabel: 'Jun 8 · 10:05 AM',
+      color: Color(0xFFB6CC8A),
+      icon: Icons.check_circle_outline,
+    ),
+  ];
+
+  void _markResolved(_AlertItem item) {
+    setState(() {
+      _activeAlerts.removeWhere((alert) => alert.id == item.id);
+      _resolvedAlerts.insert(
+        0,
+        _AlertItem(
+          id: item.id,
+          title: item.title.replaceFirst('  —', ' —'),
+          message: item.message,
+          timeLabel: 'Just now',
+          color: const Color(0xFFB6CC8A),
+          icon: Icons.check_circle_outline,
+        ),
+      );
+    });
+  }
+
+  void _dismissResolved(_AlertItem item) {
+    setState(() {
+      _resolvedAlerts.removeWhere((alert) => alert.id == item.id);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return _SingleTabScaffold(
-      title: 'Alerts',
-      subtitle: 'Action items for soil and weather changes',
-      onLogout: onLogout,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
-          _InfoCard(title: 'Low moisture alert', subtitle: 'Moisture dropped below threshold in sector B.', icon: Icons.warning_amber_outlined, fullWidth: true),
-          SizedBox(height: 12),
-          _InfoCard(title: 'Compost reminder', subtitle: 'Apply compost within 48 hours for best uptake.', icon: Icons.recycling_outlined, fullWidth: true),
+    return Scaffold(
+      body: Stack(
+        children: [
+          const _DashboardBackdrop(),
+          SafeArea(
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+                  child: _DashboardTopBar(
+                    title: 'Alerts',
+                    subtitle: '${_activeAlerts.length} active warnings',
+                    onLogout: widget.onLogout,
+                  ),
+                ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _AlertSectionHeader(
+                          title: 'Active',
+                          count: _activeAlerts.length,
+                          accentColor: const Color(0xFF2F6B3D),
+                        ),
+                        const SizedBox(height: 10),
+                        if (_activeAlerts.isEmpty)
+                          const _EmptyAlertState(text: 'No active warnings right now.')
+                        else
+                          ..._activeAlerts.map(
+                            (alert) => Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: _AlertCard(
+                                item: alert,
+                                onPrimaryAction: () => _markResolved(alert),
+                                primaryActionLabel: 'Resolve',
+                                onSecondaryAction: () {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('${alert.title} opened')),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        const SizedBox(height: 8),
+                        _AlertSectionHeader(
+                          title: 'Resolved',
+                          count: _resolvedAlerts.length,
+                          accentColor: const Color(0xFF7E9B60),
+                        ),
+                        const SizedBox(height: 10),
+                        if (_resolvedAlerts.isEmpty)
+                          const _EmptyAlertState(text: 'Resolved alerts will appear here.')
+                        else
+                          ..._resolvedAlerts.map(
+                            (alert) => Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: _AlertCard(
+                                item: alert,
+                                muted: true,
+                                onPrimaryAction: () => _dismissResolved(alert),
+                                primaryActionLabel: 'Dismiss',
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
+      ),
+    );
+  }
+}
+
+class _AlertSectionHeader extends StatelessWidget {
+  final String title;
+  final int count;
+  final Color accentColor;
+
+  const _AlertSectionHeader({required this.title, required this.count, required this.accentColor});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Text(
+          title,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF2D3740)),
+        ),
+        const SizedBox(width: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: accentColor.withOpacity(0.12),
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Text(
+            '$count',
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: accentColor),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _AlertCard extends StatelessWidget {
+  final _AlertItem item;
+  final VoidCallback onPrimaryAction;
+  final String primaryActionLabel;
+  final VoidCallback? onSecondaryAction;
+  final bool muted;
+
+  const _AlertCard({
+    required this.item,
+    required this.onPrimaryAction,
+    required this.primaryActionLabel,
+    this.onSecondaryAction,
+    this.muted = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final baseColor = muted ? const Color(0xFFB6CC8A) : item.color;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(muted ? 0.8 : 0.95),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: muted ? const Color(0xFFE1E7D8) : baseColor.withOpacity(0.22)),
+        boxShadow: const [BoxShadow(color: Color(0x0C000000), blurRadius: 10, offset: Offset(0, 4))],
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: onSecondaryAction,
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: baseColor.withOpacity(muted ? 0.14 : 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(item.icon, size: 18, color: baseColor),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.title,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                            color: muted ? const Color(0xFF97A091) : const Color(0xFFB23A2E),
+                            height: 1.15,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          item.message,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: muted ? const Color(0xFF9AA39A) : const Color(0xFF49545F),
+                            height: 1.35,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          item.timeLabel,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: muted ? const Color(0xFFB4BCB4) : const Color(0xFFA0A7AE),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: onPrimaryAction,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: muted ? const Color(0xFFF1F4EC) : baseColor,
+                        foregroundColor: muted ? const Color(0xFF54604E) : Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                      child: Text(primaryActionLabel, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
+                    ),
+                  ),
+                  if (onSecondaryAction != null) ...[
+                    const SizedBox(width: 10),
+                    OutlinedButton(
+                      onPressed: onSecondaryAction,
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: baseColor.withOpacity(0.28)),
+                        foregroundColor: baseColor,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                      child: const Text('Open', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
+                    ),
+                  ],
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _EmptyAlertState extends StatelessWidget {
+  final String text;
+
+  const _EmptyAlertState({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.8),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(fontSize: 13, color: Color(0xFF6B7280), fontWeight: FontWeight.w600),
       ),
     );
   }

@@ -90,4 +90,29 @@ void main() {
 
     expect(find.text('Welcome Back'), findsOneWidget);
   });
+
+  testWidgets('Alerts page shows active and resolved alert cards', (WidgetTester tester) async {
+    await tester.pumpWidget(const MyApp());
+
+    await tester.enterText(find.byType(TextField).at(0), 'test@example.com');
+    await tester.enterText(find.byType(TextField).at(1), 'password123');
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Sign In'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Alerts'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Alerts'), findsWidgets);
+    expect(find.text('Active'), findsOneWidget);
+    expect(find.text('Resolved'), findsOneWidget);
+    expect(find.textContaining('Low Phosphorus'), findsOneWidget);
+    expect(find.textContaining('Rain expected tomorrow'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Resolve').first);
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Just now'), findsWidgets);
+  });
 }
