@@ -222,7 +222,7 @@ class _HomeTabState extends State<HomeTab> {
                       listenable: widget.sensorRepository,
                       builder: (context, _) {
                         return const PremiumCompostCard(
-                          totalCompostKg: 1175,
+                          totalCompostKg: 11,
                           perSqMeterRate: 2.35,
                           soilHealthScore: 89,
                         );

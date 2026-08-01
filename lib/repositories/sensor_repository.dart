@@ -33,7 +33,7 @@ class SensorRepository extends ChangeNotifier {
       SensorMetric(title: 'ফসফরাস', value: '--', unit: 'ppm', icon: Icons.grass_rounded, color: Color(0xFFFFC107), apiId: 'Phosphorus'),
       SensorMetric(title: 'পটাশিয়াম', value: '--', unit: 'ppm', icon: Icons.agriculture_rounded, color: Color(0xFF009688), apiId: 'Potassium'),
       SensorMetric(title: 'EC', value: '--', unit: 'dS/m', icon: Icons.bolt_rounded, color: Color(0xFF1976D2), apiId: 'EC'),
-      SensorMetric(title: 'মাটির স্বাস্থ্য স্কোর', value: '89', unit: '%', icon: Icons.yard_rounded, color: Color(0xFF795548), apiId: 'Salinity'),
+      SensorMetric(title: 'লবণাক্ততা', value: '0', unit: '%', icon: Icons.grass_rounded, color: Color(0xFF795548), apiId: 'Salinity'),
     ];
   }
 

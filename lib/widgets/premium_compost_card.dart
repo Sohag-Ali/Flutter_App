@@ -133,6 +133,16 @@ class PremiumCompostCard extends StatelessWidget {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 6),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(999),
+                        child: LinearProgressIndicator(
+                          value: (soilHealthScore / 100).clamp(0.0, 1.0),
+                          backgroundColor: const Color(0xFFE8F5E9),
+                          valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF2E7D32)),
+                          minHeight: 6,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -196,7 +206,7 @@ class PremiumCompostCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  '(${perSqMeterRate.toStringAsFixed(2)} কেজি/মি²)',
+                  '(প্রতি শতকে)',
                   style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF6B7280)),
                 ),
               ],

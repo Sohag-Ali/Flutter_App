@@ -26,7 +26,7 @@ void main() {
     expect(find.text('মাটির স্বাস্থ্য: '), findsOneWidget);
     expect(find.text('89%'), findsWidgets);
     expect(find.text('প্রয়োজনীয় কম্পোস্ট'), findsWidgets);
-    expect(find.text('1175 কেজি'), findsOneWidget);
+    expect(find.text('11 কেজি'), findsOneWidget);
 
     // Verify reusable SensorCard widgets render
     expect(find.byType(SensorCard), findsNWidgets(8));
@@ -37,7 +37,7 @@ void main() {
     expect(find.text('ফসফরাস'), findsWidgets);
     expect(find.text('পটাশিয়াম'), findsWidgets);
     expect(find.text('EC'), findsWidgets);
-    expect(find.text('মাটির স্বাস্থ্য স্কোর'), findsWidgets);
+    expect(find.text('লবণাক্ততা'), findsWidgets);
   });
 
   testWidgets('Signup flow without role selection', (WidgetTester tester) async {
