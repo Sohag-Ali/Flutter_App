@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:flutter_app/main.dart';
+import 'package:flutter_app/widgets/sensor_card.dart';
 
 void main() {
   testWidgets('Home dashboard renders SensorCard widgets and 2-line Soil Health & Compost card', (WidgetTester tester) async {
@@ -27,7 +28,7 @@ void main() {
     expect(find.text('প্রয়োজনীয় কম্পোস্ট'), findsWidgets);
     expect(find.text('1175 কেজি'), findsOneWidget);
 
-    // Verify reusable SensorCard widgets render with exact Bengali titles
+    // Verify reusable SensorCard widgets render
     expect(find.byType(SensorCard), findsNWidgets(8));
     expect(find.text('আর্দ্রতা'), findsWidgets);
     expect(find.text('তাপমাত্রা'), findsWidgets);
@@ -35,7 +36,7 @@ void main() {
     expect(find.text('নাইট্রোজেন'), findsWidgets);
     expect(find.text('ফসফরাস'), findsWidgets);
     expect(find.text('পটাশিয়াম'), findsWidgets);
-    expect(find.text('বাতাসের গতি'), findsWidgets);
+    expect(find.text('EC'), findsWidgets);
     expect(find.text('মাটির স্বাস্থ্য স্কোর'), findsWidgets);
   });
 
