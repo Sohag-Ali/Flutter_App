@@ -629,8 +629,6 @@ class _FarmerHomeTab extends StatefulWidget {
 }
 
 class _FarmerHomeTabState extends State<_FarmerHomeTab> {
-  final TextEditingController _landAreaController = TextEditingController(text: '500');
-
   // Exact 8 sensor data items with colors matching prompt specifications
   final List<_FriendData> _friends = const [
     _FriendData(
@@ -640,7 +638,9 @@ class _FarmerHomeTabState extends State<_FarmerHomeTab> {
       weather: '☀️ রৌদ্রোজ্জ্বল',
       temperature: 31.5,
       humidity: 64,
+      compostTotalKg: 1175,
       compostPerSqMeter: 2.35,
+      soilHealthScore: 89,
       metrics: [
         _FriendMetric('আর্দ্রতা', '64', '%', Icons.water_drop_rounded, Color(0xFF2196F3)),
         _FriendMetric('তাপমাত্রা', '31.5', '°C', Icons.thermostat_rounded, Color(0xFFFF6D00)),
@@ -659,7 +659,9 @@ class _FarmerHomeTabState extends State<_FarmerHomeTab> {
       weather: '☁️ মেঘলা',
       temperature: 29.0,
       humidity: 72,
+      compostTotalKg: 1050,
       compostPerSqMeter: 2.10,
+      soilHealthScore: 82,
       metrics: [
         _FriendMetric('আর্দ্রতা', '72', '%', Icons.water_drop_rounded, Color(0xFF2196F3)),
         _FriendMetric('তাপমাত্রা', '28.9', '°C', Icons.thermostat_rounded, Color(0xFFFF6D00)),
@@ -678,7 +680,9 @@ class _FarmerHomeTabState extends State<_FarmerHomeTab> {
       weather: '🌧️ হালকা বৃষ্টি',
       temperature: 27.0,
       humidity: 59,
+      compostTotalKg: 1250,
       compostPerSqMeter: 2.50,
+      soilHealthScore: 75,
       metrics: [
         _FriendMetric('আর্দ্রতা', '59', '%', Icons.water_drop_rounded, Color(0xFF2196F3)),
         _FriendMetric('তাপমাত্রা', '27.3', '°C', Icons.thermostat_rounded, Color(0xFFFF6D00)),
@@ -694,24 +698,12 @@ class _FarmerHomeTabState extends State<_FarmerHomeTab> {
 
   String _selectedFriendId = 'rahim';
 
-  @override
-  void dispose() {
-    _landAreaController.dispose();
-    super.dispose();
-  }
-
   _FriendData get _selectedFriend =>
       _friends.firstWhere((friend) => friend.id == _selectedFriendId, orElse: () => _friends.first);
-
-  double get _currentLandArea {
-    final parsed = double.tryParse(_landAreaController.text.trim());
-    return (parsed != null && parsed > 0) ? parsed : 500.0;
-  }
 
   @override
   Widget build(BuildContext context) {
     final friend = _selectedFriend;
-    final totalCompost = _currentLandArea * friend.compostPerSqMeter;
 
     return Scaffold(
       body: Stack(
@@ -893,13 +885,11 @@ class _FarmerHomeTabState extends State<_FarmerHomeTab> {
                   ),
                   const SizedBox(height: 20),
 
-                  // COMPOST SECTION: PREMIUM RECOMMENDATION CARD
+                  // COMPOST & SOIL HEALTH SECTION: 2-LINE SUMMARY CARD WITHOUT INPUT FIELD
                   _PremiumCompostCard(
-                    currentLandArea: _currentLandArea,
+                    totalCompostKg: friend.compostTotalKg,
                     perSqMeterRate: friend.compostPerSqMeter,
-                    totalCompost: totalCompost,
-                    controller: _landAreaController,
-                    onChanged: () => setState(() {}),
+                    soilHealthScore: friend.soilHealthScore,
                   ),
                 ],
               ),
@@ -918,7 +908,9 @@ class _FriendData {
   final String weather;
   final double temperature;
   final int humidity;
+  final int compostTotalKg;
   final double compostPerSqMeter;
+  final int soilHealthScore;
   final List<_FriendMetric> metrics;
 
   const _FriendData({
@@ -928,7 +920,9 @@ class _FriendData {
     required this.weather,
     required this.temperature,
     required this.humidity,
+    required this.compostTotalKg,
     required this.compostPerSqMeter,
+    required this.soilHealthScore,
     required this.metrics,
   });
 }
@@ -1078,27 +1072,23 @@ class _SensorCardState extends State<SensorCard> {
   }
 }
 
-// PREMIUM COMPOST RECOMMENDATION CARD WIDGET
+// CLEAN 2-LINE SOIL HEALTH & COMPOST RECOMMENDATION CARD (NO INPUT FIELD)
 class _PremiumCompostCard extends StatelessWidget {
-  final double currentLandArea;
+  final int totalCompostKg;
   final double perSqMeterRate;
-  final double totalCompost;
-  final TextEditingController controller;
-  final VoidCallback onChanged;
+  final int soilHealthScore;
 
   const _PremiumCompostCard({
-    required this.currentLandArea,
+    required this.totalCompostKg,
     required this.perSqMeterRate,
-    required this.totalCompost,
-    required this.controller,
-    required this.onChanged,
+    this.soilHealthScore = 89,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [Color(0xFFEAF5E9), Color(0xFFD7EBD4)],
@@ -1118,46 +1108,46 @@ class _PremiumCompostCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Row with Title and Compost Bag Illustration Badge
+          // Header Row
           Row(
             children: [
               Container(
-                width: 52,
-                height: 52,
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [Color(0xFF2E7D32), Color(0xFF4CAF50)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                  borderRadius: BorderRadius.circular(18),
+                  borderRadius: BorderRadius.circular(14),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF2E7D32).withValues(alpha: 0.3),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
+                      color: const Color(0xFF2E7D32).withValues(alpha: 0.25),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
                     ),
                   ],
                 ),
-                child: const Icon(Icons.inventory_2_rounded, color: Colors.white, size: 28),
+                child: const Icon(Icons.analytics_rounded, color: Colors.white, size: 24),
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: 12),
               const Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '🌱 প্রয়োজনীয় কম্পোস্ট',
+                      '🌱 মাটির স্বাস্থ্য ও কম্পোস্ট সুপারিশ',
                       style: TextStyle(
-                        fontSize: 20,
+                        fontSize: 18,
                         fontWeight: FontWeight.w900,
                         color: Color(0xFF1E3A27),
                       ),
                     ),
                     SizedBox(height: 2),
                     Text(
-                      'স্মার্ট কম্পোস্ট সুপারিশ',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF4CAF50)),
+                      'স্মার্ট অ্যালগরিদম ভিত্তিক ফলাফল',
+                      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: Color(0xFF4CAF50)),
                     ),
                   ],
                 ),
@@ -1166,111 +1156,126 @@ class _PremiumCompostCard extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-          // Interactive input for land area customization
-          TextField(
-            controller: controller,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            onChanged: (_) => onChanged(),
-            decoration: InputDecoration(
-              labelText: 'জমির আয়তন লিখুন (বর্গমিটার)',
-              hintText: 'যেমন: 500',
-              prefixIcon: const Icon(Icons.straighten_rounded, color: Color(0xFF2E7D32)),
-              filled: true,
-              fillColor: Colors.white,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(color: Color(0xFFC8E6C9)),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(color: Color(0xFF2E7D32), width: 1.8),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Main Stats Breakdown Card
+          // Line 1: 1st Highlight Container - 1st Line: জমির অবস্থা / মাটির স্বাস্থ্য (%)
           Container(
-            padding: const EdgeInsets.all(16),
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            margin: const EdgeInsets.only(bottom: 10),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: const Color(0xFF81C784).withValues(alpha: 0.4)),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
-                  blurRadius: 10,
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 8,
                   offset: const Offset(0, 3),
                 ),
               ],
             ),
-            child: Column(
+            child: Row(
               children: [
-                _CompostStatLine(
-                  emoji: '📍',
-                  label: 'জমির আয়তন',
-                  value: '${currentLandArea.toStringAsFixed(0)} বর্গমিটার',
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF4CAF50).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Icon(Icons.health_and_safety_rounded, color: Color(0xFF2E7D32), size: 24),
                 ),
-                const Divider(height: 20, color: Color(0xFFEAF5E9)),
-                _CompostStatLine(
-                  emoji: '🌿',
-                  label: 'প্রতি বর্গমিটারে',
-                  value: '${perSqMeterRate.toStringAsFixed(2)} কেজি',
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'জমির অবস্থা',
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF5B6472)),
+                      ),
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          const Text(
+                            'মাটির স্বাস্থ্য: ',
+                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Color(0xFF1E3A27)),
+                          ),
+                          Text(
+                            '$soilHealthScore%',
+                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF2E7D32)),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-                const Divider(height: 20, color: Color(0xFFEAF5E9)),
-                _CompostStatLine(
-                  emoji: '🪴',
-                  label: 'মোট প্রয়োজন',
-                  value: '${totalCompost.toStringAsFixed(0)} কেজি',
-                  isPrimary: true,
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE8F5E9),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: const Color(0xFF81C784)),
+                  ),
+                  child: const Text(
+                    'উত্তম অবস্থা',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF2E7D32)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Line 2: 2nd Highlight Container - 2nd Line: প্রয়োজনীয় কম্পোস্ট (KG)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: const Color(0xFF2E7D32).withValues(alpha: 0.4)),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF2E7D32).withValues(alpha: 0.08),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2E7D32).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Icon(Icons.inventory_2_rounded, color: Color(0xFF2E7D32), size: 24),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'প্রয়োজনীয় কম্পোস্ট',
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF5B6472)),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '$totalCompostKg কেজি',
+                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF2E7D32)),
+                      ),
+                    ],
+                  ),
+                ),
+                Text(
+                  '(${perSqMeterRate.toStringAsFixed(2)} কেজি/মি²)',
+                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF6B7280)),
                 ),
               ],
             ),
           ),
         ],
       ),
-    );
-  }
-}
-
-class _CompostStatLine extends StatelessWidget {
-  final String emoji;
-  final String label;
-  final String value;
-  final bool isPrimary;
-
-  const _CompostStatLine({
-    required this.emoji,
-    required this.label,
-    required this.value,
-    this.isPrimary = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Text(emoji, style: const TextStyle(fontSize: 18)),
-        const SizedBox(width: 10),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: isPrimary ? FontWeight.w800 : FontWeight.w600,
-            color: isPrimary ? const Color(0xFF1E3A27) : const Color(0xFF5B6472),
-          ),
-        ),
-        const Spacer(),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: isPrimary ? 22 : 15,
-            fontWeight: FontWeight.w900,
-            color: isPrimary ? const Color(0xFF2E7D32) : const Color(0xFF1E3A27),
-          ),
-        ),
-      ],
     );
   }
 }

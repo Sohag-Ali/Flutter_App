@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/main.dart';
 
 void main() {
-  testWidgets('Home dashboard renders SensorCard widgets and calculates compost', (WidgetTester tester) async {
+  testWidgets('Home dashboard renders SensorCard widgets and 2-line Soil Health & Compost card', (WidgetTester tester) async {
     await tester.pumpWidget(const MyApp());
 
     expect(find.text('স্বাগতম'), findsOneWidget);
@@ -19,7 +19,13 @@ void main() {
 
     expect(find.text('গাজীপুর'), findsOneWidget);
     expect(find.textContaining('জমি নির্বাচন'), findsOneWidget);
-    expect(find.text('🌱 প্রয়োজনীয় কম্পোস্ট'), findsOneWidget);
+    expect(find.text('🌱 মাটির স্বাস্থ্য ও কম্পোস্ট সুপারিশ'), findsOneWidget);
+
+    // Verify Line 1 (মাটির স্বাস্থ্য %) and Line 2 (প্রয়োজনীয় কম্পোস্ট KG)
+    expect(find.text('মাটির স্বাস্থ্য: '), findsOneWidget);
+    expect(find.text('89%'), findsWidgets);
+    expect(find.text('প্রয়োজনীয় কম্পোস্ট'), findsWidgets);
+    expect(find.text('1175 কেজি'), findsOneWidget);
 
     // Verify reusable SensorCard widgets render with exact Bengali titles
     expect(find.byType(SensorCard), findsNWidgets(8));
@@ -31,15 +37,6 @@ void main() {
     expect(find.text('পটাশিয়াম'), findsWidgets);
     expect(find.text('বাতাসের গতি'), findsWidgets);
     expect(find.text('মাটির স্বাস্থ্য স্কোর'), findsWidgets);
-
-    expect(find.text('1175 কেজি'), findsOneWidget);
-
-    final homeTextField = find.byType(TextField).last;
-    await tester.enterText(homeTextField, '1000');
-    await tester.pumpAndSettle();
-
-    expect(find.text('1000 বর্গমিটার'), findsOneWidget);
-    expect(find.text('2350 কেজি'), findsOneWidget);
   });
 
   testWidgets('Signup flow without role selection', (WidgetTester tester) async {
