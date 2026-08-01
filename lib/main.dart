@@ -852,14 +852,14 @@ class _FarmerHomeTabState extends State<_FarmerHomeTab> {
 
                   // SENSOR SECTION HEADER
                   const Padding(
-                    padding: EdgeInsets.only(left: 4, bottom: 12),
+                    padding: EdgeInsets.only(left: 4, bottom: 10),
                     child: Text(
                       'সেন্সর প্যারামিটার (৮টি)',
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Color(0xFF1E3A27)),
                     ),
                   ),
 
-                  // REUSABLE 2-COLUMN GRIDVIEW FOR 8 SENSOR CARDS
+                  // REUSABLE COMPACT 2-COLUMN GRIDVIEW FOR 8 SENSOR CARDS
                   LayoutBuilder(
                     builder: (context, constraints) {
                       final crossAxisCount = constraints.maxWidth > 600 ? 4 : 2;
@@ -869,9 +869,9 @@ class _FarmerHomeTabState extends State<_FarmerHomeTab> {
                         itemCount: friend.metrics.length,
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: crossAxisCount,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                          childAspectRatio: 0.88,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                          childAspectRatio: 1.0,
                         ),
                         itemBuilder: (context, index) {
                           final metric = friend.metrics[index];
@@ -943,7 +943,7 @@ class _FriendMetric {
   const _FriendMetric(this.title, this.value, this.unit, this.icon, this.color);
 }
 
-// REUSABLE ANIMATED SENSOR CARD WIDGET WITH CIRCULAR BORDER RING
+// REUSABLE COMPACT ANIMATED SENSOR CARD WIDGET WITH SLEEK CIRCULAR BORDER RING
 class SensorCard extends StatefulWidget {
   final IconData icon;
   final String value;
@@ -981,44 +981,48 @@ class _SensorCardState extends State<SensorCard> {
         onTapCancel: () => setState(() => _isPressed = false),
         onTap: widget.onTap,
         child: AnimatedScale(
-          scale: _isPressed ? 0.95 : (_isHovered ? 1.02 : 1.0),
+          scale: _isPressed ? 0.96 : (_isHovered ? 1.02 : 1.0),
           duration: const Duration(milliseconds: 150),
           curve: Curves.easeOutCubic,
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 180),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: widget.color.withValues(alpha: 0.16),
+                width: 1.0,
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: widget.color.withValues(alpha: _isHovered ? 0.14 : 0.05),
-                  blurRadius: _isHovered ? 16 : 10,
-                  offset: const Offset(0, 4),
+                  color: widget.color.withValues(alpha: _isHovered ? 0.12 : 0.04),
+                  blurRadius: _isHovered ? 12 : 8,
+                  offset: const Offset(0, 3),
                 ),
               ],
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Circular border ring at the top
+                // Compact thin circular border ring
                 Expanded(
                   child: AspectRatio(
                     aspectRatio: 1.0,
                     child: Container(
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Colors.white,
+                        color: widget.color.withValues(alpha: 0.04),
                         border: Border.all(
                           color: widget.color,
-                          width: 2.8,
+                          width: 2.0,
                         ),
                       ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(widget.icon, color: widget.color, size: 24),
-                          const SizedBox(height: 4),
+                          Icon(widget.icon, color: widget.color, size: 20),
+                          const SizedBox(height: 2),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -1027,8 +1031,8 @@ class _SensorCardState extends State<SensorCard> {
                               Text(
                                 widget.value,
                                 style: const TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w900,
                                   color: Color(0xFF1E3A27),
                                   height: 1.0,
                                 ),
@@ -1038,9 +1042,9 @@ class _SensorCardState extends State<SensorCard> {
                                 Text(
                                   widget.unit,
                                   style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: const Color(0xFF555555),
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: widget.color.withValues(alpha: 0.85),
                                   ),
                                 ),
                               ],
@@ -1051,16 +1055,16 @@ class _SensorCardState extends State<SensorCard> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 6),
 
-                // Parameter name in Bengali at the bottom
+                // Bengali Parameter Title below circle
                 Text(
                   widget.title,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF222222),
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF203326),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
