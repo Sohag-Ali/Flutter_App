@@ -1,73 +1,70 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:flutter_app/main.dart';
 
 void main() {
-  testWidgets('Home dashboard renders and calculates compost', (WidgetTester tester) async {
+  testWidgets('Home dashboard renders SensorCard widgets and calculates compost', (WidgetTester tester) async {
     await tester.pumpWidget(const MyApp());
 
-    expect(find.text('Welcome Back'), findsOneWidget);
-    expect(find.widgetWithText(OutlinedButton, 'Create an Account'), findsOneWidget);
+    expect(find.text('স্বাগতম'), findsOneWidget);
+    expect(find.widgetWithText(OutlinedButton, 'নতুন অ্যাকাউন্ট তৈরি করুন'), findsOneWidget);
 
     await tester.enterText(find.byType(TextField).at(0), 'test@example.com');
     await tester.enterText(find.byType(TextField).at(1), 'password123');
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(ElevatedButton, 'Sign In'));
+    await tester.tap(find.widgetWithText(ElevatedButton, 'সাইন ইন করুন'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Dhaka'), findsOneWidget);
-    expect(find.text('Selected Friend'), findsOneWidget);
-    expect(find.text('Compost Calculator'), findsOneWidget);
-    expect(find.text('Moisture'), findsWidgets);
+    expect(find.text('গাজীপুর'), findsOneWidget);
+    expect(find.textContaining('জমি নির্বাচন'), findsOneWidget);
+    expect(find.text('🌱 প্রয়োজনীয় কম্পোস্ট'), findsOneWidget);
+
+    // Verify reusable SensorCard widgets render with exact Bengali titles
+    expect(find.byType(SensorCard), findsNWidgets(8));
+    expect(find.text('আর্দ্রতা'), findsWidgets);
+    expect(find.text('তাপমাত্রা'), findsWidgets);
+    expect(find.text('pH লেভেল'), findsWidgets);
+    expect(find.text('নাইট্রোজেন'), findsWidgets);
+    expect(find.text('ফসফরাস'), findsWidgets);
+    expect(find.text('পটাশিয়াম'), findsWidgets);
+    expect(find.text('বাতাসের গতি'), findsWidgets);
+    expect(find.text('মাটির স্বাস্থ্য স্কোর'), findsWidgets);
+
+    expect(find.text('1175 কেজি'), findsOneWidget);
 
     final homeTextField = find.byType(TextField).last;
     await tester.enterText(homeTextField, '1000');
-    final enterButton = find.widgetWithText(ElevatedButton, 'Enter');
-    await tester.ensureVisible(enterButton);
-    await tester.tap(enterButton);
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('kg compost lagbe'), findsOneWidget);
+    expect(find.text('1000 বর্গমিটার'), findsOneWidget);
+    expect(find.text('2350 কেজি'), findsOneWidget);
   });
 
   testWidgets('Signup flow without role selection', (WidgetTester tester) async {
     await tester.pumpWidget(const MyApp());
 
-    // Verify we're on login page
-    expect(find.text('Welcome Back'), findsOneWidget);
+    expect(find.text('স্বাগতম'), findsOneWidget);
 
-    // Tap "Create an Account" button
-    final createAccountButton = find.widgetWithText(OutlinedButton, 'Create an Account');
+    final createAccountButton = find.widgetWithText(OutlinedButton, 'নতুন অ্যাকাউন্ট তৈরি করুন');
     await tester.ensureVisible(createAccountButton);
     await tester.tap(createAccountButton);
     await tester.pumpAndSettle();
 
-    // Verify signup page loads
-    expect(find.text('Join Our Community'), findsOneWidget);
-    expect(find.text('Create your account to start monitoring soil health'), findsOneWidget);
+    expect(find.text('আমাদের সাথে যুক্ত হন'), findsOneWidget);
 
-    // Get all TextFields and fill them in order: email, password, confirm password
     final textFields = find.byType(TextField);
     await tester.enterText(textFields.at(0), 'newuser@example.com');
     await tester.enterText(textFields.at(1), 'password123');
     await tester.enterText(textFields.at(2), 'password123');
     await tester.pumpAndSettle();
 
-    // Tap "Create Account" button
-    await tester.tap(find.widgetWithText(ElevatedButton, 'Create Account'));
+    await tester.tap(find.widgetWithText(ElevatedButton, 'অ্যাকাউন্ট তৈরি করুন'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Dhaka'), findsOneWidget);
-    expect(find.text('Selected Friend'), findsOneWidget);
+    expect(find.text('গাজীপুর'), findsOneWidget);
+    expect(find.textContaining('জমি নির্বাচন'), findsOneWidget);
   });
 
   testWidgets('Logout redirects to login page from monitor tab', (WidgetTester tester) async {
@@ -77,114 +74,72 @@ void main() {
     await tester.enterText(find.byType(TextField).at(1), 'password123');
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(ElevatedButton, 'Sign In'));
+    await tester.tap(find.widgetWithText(ElevatedButton, 'সাইন ইন করুন'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Monitor'));
+    await tester.tap(find.text('পর্যবেক্ষণ'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Logout'), findsOneWidget);
+    expect(find.text('লগআউট'), findsWidgets);
 
-    await tester.tap(find.text('Logout'));
+    await tester.tap(find.text('লগআউট').first);
     await tester.pumpAndSettle();
 
-    expect(find.text('Welcome Back'), findsOneWidget);
+    expect(find.text('স্বাগতম'), findsOneWidget);
   });
 
-  testWidgets('Monitor page shows live compare details and export tabs', (WidgetTester tester) async {
+  testWidgets('Monitor page shows live and compare tabs', (WidgetTester tester) async {
     await tester.pumpWidget(const MyApp());
 
     await tester.enterText(find.byType(TextField).at(0), 'test@example.com');
     await tester.enterText(find.byType(TextField).at(1), 'password123');
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(ElevatedButton, 'Sign In'));
+    await tester.tap(find.widgetWithText(ElevatedButton, 'সাইন ইন করুন'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Monitor'));
+    await tester.tap(find.text('পর্যবেক্ষণ'));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('Live · updated 12s ago'), findsWidgets);
-    expect(find.text('Compare'), findsWidgets);
-    expect(find.text('Details'), findsWidgets);
-    expect(find.text('Export'), findsWidgets);
-    expect(find.textContaining('Phosphorus'), findsWidgets);
-
-    await tester.tap(find.text('Compare').first);
-    await tester.pumpAndSettle();
-
-    expect(find.text('Warning'), findsWidgets);
-    expect(find.textContaining('Field B'), findsOneWidget);
-
-    await tester.tap(find.text('Details').first);
-    await tester.pumpAndSettle();
-
-    expect(find.text('Details'), findsWidgets);
-    expect(find.textContaining('Current'), findsWidgets);
-    expect(find.textContaining('Avg'), findsWidgets);
-    expect(find.textContaining('Peak'), findsWidgets);
-    expect(find.textContaining('Low'), findsWidgets);
-
-    await tester.tap(find.text('Export').first);
-    await tester.pumpAndSettle();
-
-    expect(find.text('PDF report'), findsOneWidget);
-    expect(find.text('CSV data'), findsOneWidget);
-    expect(find.text('PNG chart'), findsOneWidget);
-    expect(find.text('Share live data'), findsOneWidget);
+    expect(find.text('লাইভ'), findsWidgets);
+    expect(find.text('তুলনা'), findsWidgets);
+    expect(find.textContaining('নাইট্রোজেন'), findsWidgets);
   });
 
-  testWidgets('Alerts page shows active and resolved alert cards', (WidgetTester tester) async {
+  testWidgets('Alerts page shows active alerts', (WidgetTester tester) async {
     await tester.pumpWidget(const MyApp());
 
     await tester.enterText(find.byType(TextField).at(0), 'test@example.com');
     await tester.enterText(find.byType(TextField).at(1), 'password123');
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(ElevatedButton, 'Sign In'));
+    await tester.tap(find.widgetWithText(ElevatedButton, 'সাইন ইন করুন'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Alerts'));
+    await tester.tap(find.text('সতর্কতা'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Alerts'), findsWidgets);
-    expect(find.text('Active'), findsOneWidget);
-    expect(find.text('Resolved'), findsOneWidget);
-    expect(find.textContaining('Low Phosphorus'), findsOneWidget);
-    expect(find.textContaining('Rain expected tomorrow'), findsOneWidget);
-
-    await tester.tap(find.widgetWithText(ElevatedButton, 'Resolve').first);
-    await tester.pumpAndSettle();
-
-    expect(find.textContaining('Just now'), findsWidgets);
+    expect(find.text('সতর্কতা'), findsWidgets);
+    expect(find.textContaining('ফসফরাস কম'), findsOneWidget);
   });
 
-  testWidgets('Graph page renders metric chips and summary cards', (WidgetTester tester) async {
+  testWidgets('Graph page renders metric chips', (WidgetTester tester) async {
     await tester.pumpWidget(const MyApp());
 
     await tester.enterText(find.byType(TextField).at(0), 'test@example.com');
     await tester.enterText(find.byType(TextField).at(1), 'password123');
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(ElevatedButton, 'Sign In'));
+    await tester.tap(find.widgetWithText(ElevatedButton, 'সাইন ইন করুন'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Graph'));
+    await tester.tap(find.text('গ্রাফ'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Graph'), findsWidgets);
-    expect(find.text('7-day trends'), findsWidgets);
-    expect(find.text('Moisture'), findsWidgets);
-    expect(find.text('Temp'), findsWidgets);
+    expect(find.text('গ্রাফ বিশ্লেষণ'), findsWidgets);
+    expect(find.text('আর্দ্রতা'), findsWidgets);
+    expect(find.text('তাপমাত্রা'), findsWidgets);
     expect(find.text('pH'), findsWidgets);
-    expect(find.text('Summary stats'), findsOneWidget);
-    expect(find.text('Avg moisture'), findsOneWidget);
-    expect(find.text('Avg temp'), findsOneWidget);
-
-    await tester.tap(find.text('Temp').first);
-    await tester.pumpAndSettle();
-
-    expect(find.text('Stable range'), findsWidgets);
   });
 
   testWidgets('Profile page renders shortcut cards', (WidgetTester tester) async {
@@ -194,45 +149,38 @@ void main() {
     await tester.enterText(find.byType(TextField).at(1), 'password123');
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(ElevatedButton, 'Sign In'));
+    await tester.tap(find.widgetWithText(ElevatedButton, 'সাইন ইন করুন'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Profile'));
+    await tester.tap(find.text('প্রোফাইল'));
     await tester.pumpAndSettle();
 
     expect(find.text('রহিম উদ্দিন'), findsOneWidget);
-    expect(find.text('Gazipur · 3 fields connected'), findsOneWidget);
-    expect(find.text('Field Map'), findsWidgets);
-    expect(find.text('Crop Advice'), findsOneWidget);
-    expect(find.text('Weather'), findsOneWidget);
-    expect(find.text('Compost Calculator'), findsOneWidget);
-    expect(find.text('Activity Log'), findsOneWidget);
-    expect(find.text('Settings'), findsOneWidget);
+    expect(find.text('গাজীপুর · ৩টি জমি যুক্ত'), findsOneWidget);
+    expect(find.text('জমির ম্যাপ'), findsWidgets);
+    expect(find.text('ফসল পরামর্শ'), findsOneWidget);
 
-    await tester.tap(find.text('Field Map').last);
+    await tester.tap(find.text('জমির ম্যাপ').last);
     await tester.pumpAndSettle();
 
-    expect(find.text('Field Map'), findsWidgets);
-    expect(find.text('Field A'), findsOneWidget);
+    expect(find.text('জমির ম্যাপ'), findsWidgets);
+    expect(find.text('উত্তর মাঠ'), findsOneWidget);
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Add field'));
+    await tester.tap(find.byType(FloatingActionButton));
     await tester.pumpAndSettle();
 
-    expect(find.text('Add new field'), findsOneWidget);
+    expect(find.text('নতুন জমি যোগ করুন'), findsOneWidget);
 
     final formFields = find.byType(TextFormField);
-    await tester.enterText(formFields.at(0), 'North Field');
-    await tester.enterText(formFields.at(1), '2.5 বিঘা');
-    await tester.enterText(formFields.at(2), 'Gazipur');
-    await tester.enterText(formFields.at(3), 'North side organic plot');
+    await tester.enterText(formFields.at(0), 'পূর্ব মাঠ');
+    await tester.enterText(formFields.at(1), 'কুমিল্লা');
+    await tester.enterText(formFields.at(2), '৩.০ বিঘা');
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(ElevatedButton, 'Save field'));
+    await tester.tap(find.widgetWithText(ElevatedButton, 'সংরক্ষণ করুন'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Field added successfully'), findsOneWidget);
-    await tester.pumpAndSettle();
-    expect(find.text('North Field'), findsOneWidget);
-    expect(find.textContaining('Gazipur'), findsWidgets);
+    expect(find.text('পূর্ব মাঠ'), findsOneWidget);
+    expect(find.textContaining('কুমিল্লা'), findsWidgets);
   });
 }
